@@ -1,0 +1,10 @@
+Import('env', 'lib')
+
+env.Append(CPPPATH=['#testbed/include', '#engine/include'])
+
+sources = Glob('src/*.cc')
+
+target = 'testbed'
+
+executable = env.Program(target=target, source=sources, LIBS=[lib])
+Return('executable')
