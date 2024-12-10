@@ -1,0 +1,3 @@
+namespace gravity {
+    int test();
+}

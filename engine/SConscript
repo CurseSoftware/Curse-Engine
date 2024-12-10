@@ -1,10 +1,11 @@
+import os
 Import('env')  # Import the environment from SConstruct
 
 # Add include paths
-env.Append(CPPPATH=['include'])
+env.Append(CPPPATH=['include', 'src'])
 
 # Source files for the library
-sources = Glob('src/*.cc')
+sources = Glob( 'src/core/*.cc')
 
 # Build the library (static or shared)
 lib = env.Library(target='engine', source=sources)

@@ -1,35 +1,88 @@
+// // tasks.json
+// {
+//     "version": "2.0.0",
+//     "tasks": [
+//         {
+//             "type": "process",
+//             "label": "Build Engine",
+//             "command": "cl.exe",
+//             "args": [
+//                 "/std:c++17",
+//                 "/EHsc",
+//                 "/Zi",
+//                 "/Fe${workspaceFolder}/engine/bin/engine.exe",
+//                 "${workspaceFolder}/engine/src/*.cpp",
+//                 "/I${workspaceFolder}/engine/include"
+//             ],
+//             "problemMatcher": [
+//                 "$msCompile"
+//             ],
+//             "group": {
+//                 "kind": "build",
+//                 "isDefault": true
+//             }
+//         },
+//         {
+//             "type": "process",
+//             "label": "Build Testbed",
+//             "command": "cl.exe",
+//             "args": [
+//                 "/std:c++17",
+//                 "/EHsc",
+//                 "/Zi",
+//                 "/Fe${workspaceFolder}/testbed/bin/testbed.exe",
+//                 "${workspaceFolder}/testbed/src/*.cpp",
+//                 "/I${workspaceFolder}/testbed/include",
+//                 "/I${workspaceFolder}/engine/include"
+//             ],
+//             "problemMatcher": [
+//                 "$msCompile"
+//             ],
+//             "group": "build"
+//         }
+//     ]
+// }
+
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "build engine",
-      "type": "shell",
-      "command": "scons",
-      "args": [
-        "-Q",
-        "engine"
-      ],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": ["$gcc"],
-      "detail": "Generated task for building engine"
-    },
-    {
-      "label": "build testbed",
-      "type": "shell",
-      "command": "scons",
-      "args": [
-        "-Q",
-        "testbed"
-      ],
-      "group": {
-        "kind": "build",
-        "isDefault": false
-      },
-      "problemMatcher": ["$gcc"],
-      "detail": "Generated task for building testbed"
-    }
-  ]
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "process",
+            "label": "Build Engine",
+            "command": "cl.exe",
+            "args": [
+                "/std:c++17",
+                "/EHsc",
+                "/Zi",
+                "/Fe${workspaceFolder}/engine/bin/engine.exe",
+                "${workspaceFolder}/engine/**/*.cpp",
+                "/I${workspaceFolder}/engine"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "process",
+            "label": "Build Testbed",
+            "command": "cl.exe",
+            "args": [
+                "/std:c++20",
+                "/EHsc",
+                "/Zi",
+                "/Fe${workspaceFolder}/build/testbed/testbed.exe",
+                "${workspaceFolder}/testbed/**/*.cc",
+                "/I${workspaceFolder}/testbed",
+                "/I${workspaceFolder}/engine"
+            ],
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "group": "build"
+        }
+    ]
 }

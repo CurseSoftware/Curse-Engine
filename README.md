@@ -7,3 +7,6 @@ To run the *testbed* program you can run `scons run=testbed`.
 
 ### Debug builds
 To create a debug build run `scons mode=debug`. Otherwise it will default to `release`.
+
+### Cleaning build
+Run `scons -c` to clean the build.

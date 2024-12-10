@@ -1,7 +1,7 @@
 #include "test.h"
 #include <iostream>
 
-int test() {
+int test() noexcept {
     std::cout << "Test Function" << std::endl;
 
     return 19;

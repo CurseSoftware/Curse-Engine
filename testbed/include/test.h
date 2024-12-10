@@ -1,1 +1,1 @@
-int test();
+int test() noexcept;

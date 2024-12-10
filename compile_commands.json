@@ -1,0 +1,20 @@
+[
+    {
+        "command": "cl /Fobuild\\engine\\src\\core\\application.obj /c engine\\src\\core\\application.cc /TP /std:c++20 -O2 /EHsc /Ibuild\\engine\\include /Iengine\\include /Ibuild\\engine\\src /Iengine\\src /Itestbed\\include /Iengine\\include",
+        "directory": "C:\\Users\\ralex\\Desktop\\Projects\\Gravity",
+        "file": "engine\\src\\core\\application.cc",
+        "output": "build\\engine\\src\\core\\application.obj"
+    },
+    {
+        "command": "cl /Fobuild\\testbed\\src\\main.obj /c testbed\\src\\main.cc /TP /std:c++20 -O2 /EHsc /Ibuild\\testbed\\include /Itestbed\\include /Ibuild\\testbed\\src /Itestbed\\src /Itestbed\\include /Iengine\\include",
+        "directory": "C:\\Users\\ralex\\Desktop\\Projects\\Gravity",
+        "file": "testbed\\src\\main.cc",
+        "output": "build\\testbed\\src\\main.obj"
+    },
+    {
+        "command": "cl /Fobuild\\testbed\\src\\test.obj /c testbed\\src\\test.cc /TP /std:c++20 -O2 /EHsc /Ibuild\\testbed\\include /Itestbed\\include /Ibuild\\testbed\\src /Itestbed\\src /Itestbed\\include /Iengine\\include",
+        "directory": "C:\\Users\\ralex\\Desktop\\Projects\\Gravity",
+        "file": "testbed\\src\\test.cc",
+        "output": "build\\testbed\\src\\test.obj"
+    }
+]

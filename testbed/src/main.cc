@@ -1,11 +1,13 @@
 #include <iostream>
-#include "test.h"
-#include "engine.h"
+// #include "gravity.h"
+#include <core/application.h>
 
 
-int main() {
+
+int main() noexcept {
     std::cout << "TESTBED" << std::endl;
+    gravity::core::Application::create();
 
-    std::cout << test() << std::endl;
-    std::cout << engine() << std::endl;
+
+    return EXIT_SUCCESS;
 }

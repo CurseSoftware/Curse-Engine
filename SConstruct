@@ -1,8 +1,10 @@
 import subprocess
+import os
 
 def run_executable(target, source, env):
     program = str(source[0])  # The built executable
     subprocess.run([program])  # Run the program
+
 
 # Read the build mode from the command line (default to 'release')
 mode = ARGUMENTS.get('mode', 'release')
@@ -23,7 +25,17 @@ if mode == 'debug':
 else:
     env = release_env
 
-engine_target = SConscript('engine/SConscript', exports={'env': env}, variant_dir=f'{build_dir}engine/', duplicate=0)
+# Platorm Compiler Flags 
+if env['PLATFORM'] == 'win32':
+    env.Append(CCFLAGS=['/EHsc'])
+    env.Append(CXXFLAGS='/std:c++20')  # For C++20
+else:
+    env.Append(CXXFLAGS='-std=c++20')  # For C++20
+
+env.Tool('compilation_db')
+compdb = env.CompilationDatabase(output_directory=".vscode")
+
+engine_target = SConscript('engine/SConscript', exports={'env': env}, variant_dir=f'{build_dir}/engine/', duplicate=0)
 testbed_target = SConscript('testbed/SConscript', exports={'env': env}, variant_dir=f'{build_dir}/testbed', duplicate=0)
 
 if run_target == 'testbed':
