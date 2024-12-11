@@ -5,10 +5,8 @@
 
 
 int main() noexcept {
-    auto app = gravity::core::Application::create();
-
-    app.shutdown();
-    
+    gravity::core::Application::startup();
+    gravity::core::Application::shutdown();
 
     return EXIT_SUCCESS;
 }

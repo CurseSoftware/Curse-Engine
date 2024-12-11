@@ -4,15 +4,18 @@
 namespace gravity {
 
 namespace core { 
+Application* Application::instance = nullptr;
 
-Application Application::create() noexcept {
-    Application a = Application();
-
+void Application::startup() noexcept {
     logger::Logger::startup();
     platform::Platform::startup();
 
     logger::Logger::get()->debug("Application created.");
-    return a;
+    if (!Application::instance) {
+        Application::instance = new Application();
+    } else {
+        exit(1);
+    }
 }
 
 void Application::shutdown() noexcept {

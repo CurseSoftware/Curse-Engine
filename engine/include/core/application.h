@@ -13,13 +13,16 @@ enum class ApplicationError {
 
 class Application {
 public:
-    static Application create() noexcept;
-    void shutdown() noexcept;
+    static void startup() noexcept;
+    static void shutdown() noexcept;
     result::Result<int, ApplicationError> register_window() noexcept;
 
 private:
     Application() noexcept;
+
+    static Application* instance;
 };
+
 
 } // core namespace
 } // gravity namespace
