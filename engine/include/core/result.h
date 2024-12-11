@@ -10,16 +10,17 @@
 #include <type_traits>
 #include <utility>
 #include <variant>
+#include "defines.h"
 
 namespace gravity {
 namespace result {
 
 template <typename T, typename E>
-class Result;
+class QAPI Result;
 
 // For the Ok type of a result
 template <typename T>
-struct Ok {
+struct QAPI Ok {
     explicit constexpr Ok(const T& value) : m_value(value) {}
     explicit constexpr Ok(T&& value) : m_value(std::move(value)) {}
 
@@ -42,7 +43,7 @@ private:
 
 // For the Err type of a result
 template <typename E>
-struct Err {
+struct QAPI Err {
     explicit constexpr Err(const E& value) : m_value(value) {}
     explicit constexpr Err(E&& value) : m_value(std::move(value)) {}
 
@@ -54,7 +55,7 @@ private:
 };
 
 template <typename T, typename E>
-class Result {
+class QAPI Result {
 public:
     Result() 
         : m_ok(false) {

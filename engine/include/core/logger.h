@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <fstream>
+#include <iostream>
 #include "defines.h"
 #include "platform.h"
 
@@ -14,10 +15,11 @@ constexpr int BUFSIZE = 200; // bytes to allocate on the stack for writing
 
 class Logger {
 public:
-    static void startup(bool use_colors, bool use_console=true) {
+    static void startup() {
         if (!Logger::instance) {
             Logger::instance = new Logger();
         } else {
+            std::cout << "NO LOGGER";
             exit(1);
         }
     }
@@ -316,6 +318,7 @@ private:
 
     static Logger* instance;
 };
+
 
 } // logger namespace
 } // core namespace

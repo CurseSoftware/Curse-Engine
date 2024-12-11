@@ -2,13 +2,17 @@ import os
 Import('env')  # Import the environment from SConstruct
 
 # Add include paths
-env.Append(CPPPATH=['include', 'src'])
+engine_env = env.Clone()
+engine_env.Append(
+    CPPPATH=['include', 'src'],
+    CPPDEFINES=['QEXPORT']
+)
 
 # Source files for the library
 sources = Glob( 'src/core/*.cc')
 
 # Build the library (static or shared)
-lib = env.Library(target='engine', source=sources)
+lib = engine_env.Library(target='engine', source=sources)
 
 # Export the library and include paths for other projects
-Export('lib', 'env')
+Export('lib', 'engine_env')

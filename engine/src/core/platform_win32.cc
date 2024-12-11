@@ -9,6 +9,7 @@ namespace gravity {
 namespace core {
 
 namespace platform {
+Platform* Platform::instance = nullptr;
 static double clock_frequency;
 
 constexpr int COLOR_BLACK = 0;
@@ -51,7 +52,7 @@ constexpr int color_to_value(color c) {
     }
 }
 
-void console_write(color msg_color, const std::string& msg) {
+void Platform::console_write(color msg_color, const std::string& msg) {
     CONSOLE_SCREEN_BUFFER_INFO Info;
 	HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	GetConsoleScreenBufferInfo(console_handle, &Info);
@@ -66,7 +67,7 @@ void console_write(color msg_color, const std::string& msg) {
 	SetConsoleTextAttribute(console_handle, Attributes);
 }
 
-void console_error(color msg_color, const std::string& msg) {
+void Platform::console_error(color msg_color, const std::string& msg) {
     CONSOLE_SCREEN_BUFFER_INFO Info;
 	HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	GetConsoleScreenBufferInfo(console_handle, &Info);
@@ -90,17 +91,22 @@ double Platform::get_absolute_time() {
 
 /// @brief Startup behavior for the Win32 Platform
 void Platform::startup() {
-    LARGE_INTEGER frequency;
-	QueryPerformanceFrequency(&frequency);
-	Platform::get()->clock_frequency = 1.0f / static_cast<double>(frequency.QuadPart);
-	QueryPerformanceCounter(&Platform::get()->start_time);
-
-	logger::Logger::get()->info("Window Created...");
-    
     if (!Platform::instance) {
         Platform::instance = new Platform();
     } else {
         exit(1);
+    }
+
+    LARGE_INTEGER frequency;
+	QueryPerformanceFrequency(&frequency);
+	Platform::get()->clock_frequency = 1.0f / static_cast<double>(frequency.QuadPart);
+	QueryPerformanceCounter(&Platform::get()->start_time);
+}
+
+void Platform::shutdown() {
+    if (Platform::instance) {
+        delete Platform::instance;
+        Platform::instance = nullptr;
     }
 }
 

@@ -28,7 +28,7 @@ else:
 # Platorm Compiler Flags 
 if env['PLATFORM'] == 'win32':
     env.Append(CCFLAGS=['/EHsc'])
-    env.Append(CXXFLAGS='/std:c++20')  # For C++20
+    env.Append(CXXFLAGS=['/std:c++20'])  # For C++20
 else:
     env.Append(CXXFLAGS='-std=c++20')  # For C++20
 

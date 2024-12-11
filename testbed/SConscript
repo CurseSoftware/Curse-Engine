@@ -1,10 +1,14 @@
 Import('env', 'lib')
 
-env.Append(CPPPATH=['#testbed/include', '#engine/include'])
+testbed_env = env.Clone()
+testbed_env.Append(
+    CPPPATH=['#testbed/include', '#engine/include'],
+    CPPDEFINES=['QIMPORT']
+)
 
 sources = Glob('src/*.cc')
 
 target = 'testbed'
 
-executable = env.Program(target=target, source=sources, LIBS=[lib])
+executable = testbed_env.Program(target=target, source=sources, LIBS=[lib])
 Return('executable')

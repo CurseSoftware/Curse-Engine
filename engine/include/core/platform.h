@@ -2,6 +2,7 @@
 #include "defines.h"
 
 #include <string>
+#include <iostream>
 
 #if defined(Q_PLATFORM_WINDOWS)
 #include <windows.h>
@@ -35,6 +36,7 @@ public:
     /// @return singleton instance of the Platofrm
     static Platform* get() {
         if (!Platform::instance) {
+            std::cout << "NO PLATFORM\n";
             exit(1);
         } 
         return Platform::instance;
@@ -62,6 +64,7 @@ private:
     LARGE_INTEGER start_time;
     #endif
 };
+
 
 
 
