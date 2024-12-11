@@ -19,7 +19,6 @@ public:
         if (!Logger::instance) {
             Logger::instance = new Logger();
         } else {
-            std::cout << "NO LOGGER";
             exit(1);
         }
     }

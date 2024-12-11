@@ -5,9 +5,10 @@
 
 
 int main() noexcept {
-    std::cout << "TESTBED" << std::endl;
-    gravity::core::Application::create();
+    auto app = gravity::core::Application::create();
 
+    app.shutdown();
+    
 
     return EXIT_SUCCESS;
 }

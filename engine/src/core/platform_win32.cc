@@ -104,6 +104,7 @@ void Platform::startup() {
 }
 
 void Platform::shutdown() {
+    logger::Logger::get()->debug("Shutting down platform.");
     if (Platform::instance) {
         delete Platform::instance;
         Platform::instance = nullptr;

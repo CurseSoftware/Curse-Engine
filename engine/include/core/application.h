@@ -14,7 +14,7 @@ enum class ApplicationError {
 class Application {
 public:
     static Application create() noexcept;
-    static void destroy() noexcept;
+    void shutdown() noexcept;
     result::Result<int, ApplicationError> register_window() noexcept;
 
 private:

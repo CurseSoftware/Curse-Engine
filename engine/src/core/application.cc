@@ -15,8 +15,9 @@ Application Application::create() noexcept {
     return a;
 }
 
-void Application::destroy() noexcept {
+void Application::shutdown() noexcept {
     // Shutdown in reverse order of the startup
+    logger::Logger::get()->debug("Shutting down application");
     platform::Platform::shutdown();
     logger::Logger::shutdown();
 }
@@ -26,7 +27,6 @@ result::Result<int, ApplicationError> Application::register_window() noexcept {
 }
 
 Application::Application() noexcept {
-    std::cout << "Creating application..." << std::endl;
 }
 
 }
