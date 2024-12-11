@@ -6,6 +6,24 @@
         "output": "build\\engine\\src\\core\\application.obj"
     },
     {
+        "command": "cl /Fobuild\\engine\\src\\core\\platform_linux.obj /c engine\\src\\core\\platform_linux.cc /TP /std:c++20 -O2 /EHsc /Ibuild\\engine\\include /Iengine\\include /Ibuild\\engine\\src /Iengine\\src /Itestbed\\include /Iengine\\include",
+        "directory": "C:\\Users\\ralex\\Desktop\\Projects\\Gravity",
+        "file": "engine\\src\\core\\platform_linux.cc",
+        "output": "build\\engine\\src\\core\\platform_linux.obj"
+    },
+    {
+        "command": "cl /Fobuild\\engine\\src\\core\\platform_win32.obj /c engine\\src\\core\\platform_win32.cc /TP /std:c++20 -O2 /EHsc /Ibuild\\engine\\include /Iengine\\include /Ibuild\\engine\\src /Iengine\\src /Itestbed\\include /Iengine\\include",
+        "directory": "C:\\Users\\ralex\\Desktop\\Projects\\Gravity",
+        "file": "engine\\src\\core\\platform_win32.cc",
+        "output": "build\\engine\\src\\core\\platform_win32.obj"
+    },
+    {
+        "command": "cl /Fobuild\\engine\\src\\core\\time.obj /c engine\\src\\core\\time.cc /TP /std:c++20 -O2 /EHsc /Ibuild\\engine\\include /Iengine\\include /Ibuild\\engine\\src /Iengine\\src /Itestbed\\include /Iengine\\include",
+        "directory": "C:\\Users\\ralex\\Desktop\\Projects\\Gravity",
+        "file": "engine\\src\\core\\time.cc",
+        "output": "build\\engine\\src\\core\\time.obj"
+    },
+    {
         "command": "cl /Fobuild\\testbed\\src\\main.obj /c testbed\\src\\main.cc /TP /std:c++20 -O2 /EHsc /Ibuild\\testbed\\include /Itestbed\\include /Ibuild\\testbed\\src /Itestbed\\src /Itestbed\\include /Iengine\\include",
         "directory": "C:\\Users\\ralex\\Desktop\\Projects\\Gravity",
         "file": "testbed\\src\\main.cc",
