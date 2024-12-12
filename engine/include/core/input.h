@@ -5,7 +5,6 @@
 #include <tuple>
 #include "logger.h"
 
-using namespace gravity::core::types;
 
 namespace gravity {
 
@@ -37,8 +36,9 @@ struct InputState {
 // TODO: Input Handler
 class InputHandler {
 public:
-    static InputHandler* handler_instance;
-    static InputHandler* get_reference();
+    static void startup();
+    static void shutdown();
+    static InputHandler* get();
     ~InputHandler();
 
     void update(f64 delta_time);
@@ -59,9 +59,8 @@ private:
     bool _was_key_down(Keys key);
     bool _was_key_up(Keys key);
 
-    logger::Logger m_logger;
     InputState m_state;
-
+    static InputHandler* handler_instance;
 protected:
     InputHandler();
 };
