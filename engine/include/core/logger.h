@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include "defines.h"
-#include "platform.h"
+#include "platform/platform.h"
 
 namespace gravity {
 namespace core {

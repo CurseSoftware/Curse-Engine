@@ -8,6 +8,5 @@
 #include "keys.h"
 #include "logger.h"
 #include "mouse_buttons.h"
-#include "platform.h"
 #include "result.h"
 #include "time.h"

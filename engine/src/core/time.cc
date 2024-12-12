@@ -1,5 +1,5 @@
 #include "core/time.h"
-#include "core/platform.h"
+#include "platform/platform.h"
 
 namespace gravity {
 namespace core {

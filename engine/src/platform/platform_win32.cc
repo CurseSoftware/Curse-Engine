@@ -1,4 +1,4 @@
-#include "core/platform.h"
+#include "platform/platform.h"
 #include "core/defines.h"
 #include "core/logger.h"
 
@@ -6,9 +6,10 @@
 #include <windows.h>
 #include <cstdint>
 namespace gravity {
-namespace core {
 
 namespace platform {
+using namespace core;
+
 Platform* Platform::instance = nullptr;
 static double clock_frequency;
 
@@ -112,6 +113,5 @@ void Platform::shutdown() {
 }
 
 } // platform namespace
-} // core namespace
 } // gravity namespace
 #endif // Q_PLATFORM_WINDOWS

@@ -1,5 +1,5 @@
 #include "core/defines.h"
-#include "core/platform.h"
+#include "platform/platform.h"
 #include <string>
 #include <string.h>
 

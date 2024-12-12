@@ -1,5 +1,5 @@
 #pragma once
-#include "defines.h"
+#include "core/defines.h"
 
 #include <string>
 #include <iostream>
@@ -9,7 +9,6 @@
 #endif
 
 namespace gravity {
-namespace core {
 
 namespace platform {
 
@@ -69,5 +68,4 @@ private:
 
 
 } // platform namespace
-} // core namespace
 } // gravity namespace

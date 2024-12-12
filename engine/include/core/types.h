@@ -3,12 +3,9 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include "result.h"
 
 namespace gravity {
-
-namespace core {
-
-namespace types {
 
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -25,7 +22,6 @@ using f64 = double;
 
 using usize = std::size_t;
 
+using namespace result;
 
-} // types namespace
-} // core namespace
 } // bifrost namespace
