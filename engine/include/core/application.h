@@ -2,8 +2,9 @@
 #include "result.h"
 #include "defines.h"
 #include "logger.h"
-#include "platform/platform.h"
 #include "types.h"
+#include "input.h"
+#include "platform/platform.h"
 
 namespace gravity {
 namespace core {

@@ -14,11 +14,135 @@ bool window_should_close = false;
 
 constexpr const char* WINDOW_CLASS_NAME = "BIFROST WINDOW CLASS NAME";
 
+/// @brief Window constructor
+/// @param packet Packet containing information relevant to the window
+Window::Window(const WindowPacket& packet) 
+	: m_hinstance(packet.hinstance)
+	, m_window(packet.hwindow)
+	, m_width(packet.width)
+	, m_height(packet.height)
+	, m_can_resize(false)
+	, m_is_initialized(false)
+{
+}
+
+/// @brief Destroy the window
 Window::~Window() {
 	if (m_is_initialized) {
 		Logger::get()->warn("Window destructor called without explicit shutdown. Shutting down now.");
 		this->shutdown();
 	}
+}
+
+/// @brief Move constructor
+/// @param other 
+Window::Window(Window&& other) {
+	std::swap(m_width, other.m_width);
+	std::swap(m_height, other.m_height);
+	std::swap(m_can_resize, other.m_can_resize);
+	std::swap(m_is_initialized, other.m_is_initialized);
+	std::swap(m_should_close, other.m_should_close);
+}
+
+
+
+/// @brief Attempt to create a window
+/// @param width Width in pixels of the window
+/// @param height Height in pixels of the window
+/// @param title Name of the window
+/// @return Ok(Window) if successful. Err(err) otherwise.
+Result<Window, WindowError> Window::create(
+	u32 width,
+	u32 height,
+	std::string title
+) {
+	Logger::get()->info("Creating window.");
+	HINSTANCE hinstance = GetModuleHandle(0);
+
+	// Setup and register the window class
+	HICON icon = LoadIcon(hinstance, IDI_APPLICATION);
+	WNDCLASSA wc{ 0 };
+	wc.style = CS_DBLCLKS;
+	wc.lpfnWndProc = Window::WindowProc;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hInstance = hinstance;
+	wc.hIcon = icon;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground = NULL;
+	wc.lpszClassName = WINDOW_CLASS_NAME;
+
+	if (!RegisterClassA(&wc)) {
+		MessageBoxA(
+			0,
+			"Window registration failed",
+			"Error!",
+			MB_ICONEXCLAMATION | MB_OK
+		);
+		return Err(WindowError::REGISTRATIONFAILED);
+	}
+	Logger::get()->info("Window registration succeeded.");
+
+	// Create window
+	uint32_t client_x = 300;
+	uint32_t client_y = 100;
+	uint32_t client_width = width;
+	uint32_t client_height = height;
+
+	uint32_t window_x = client_x;
+	uint32_t window_y = client_y;
+	uint32_t window_width = client_width;
+	uint32_t window_height = client_height;
+
+	uint32_t window_style = WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION;
+	uint32_t window_ex_style = WS_EX_APPWINDOW;
+
+	window_style |= WS_MAXIMIZEBOX;
+	window_style |= WS_MINIMIZEBOX;
+	window_style |= WS_THICKFRAME;
+
+	RECT border_rect = { 0,0,0,0 };
+	AdjustWindowRectEx(&border_rect, window_style, FALSE, window_ex_style);
+
+	window_x += border_rect.left;
+	window_y += border_rect.top;
+
+	// Grow by the size of the OS border
+	window_width += border_rect.right - border_rect.left;
+	window_height += border_rect.bottom - border_rect.top;
+
+	HWND hwindow = CreateWindowExA(
+		window_ex_style,
+		WINDOW_CLASS_NAME,
+		title.c_str(),
+		window_style,
+		window_x,
+		window_y,
+		window_width,
+		window_height,
+		nullptr,
+		nullptr,
+		hinstance,
+		nullptr
+	);
+
+	if (hwindow == nullptr) {
+		Logger::get()->error("Failed to create window");
+		MessageBoxA(NULL, "Window creation failed", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		return Err(WindowError::CREATIONFAILED);
+	}
+
+	Logger::get()->info("Window created successfully");
+	Logger::get()->info("Window is initialized");
+
+	WindowPacket packet = {0};
+	packet.hinstance = hinstance;
+	packet.hwindow = hwindow;
+	packet.width = width;
+	packet.height = height;
+
+	// m_is_initialized = true;
+	return Ok(Window(packet));
 }
 
 void Window::_init() {
@@ -115,6 +239,13 @@ void Window::shutdown() {
 
 	Logger::get()->info("Shutting down window.");
 	m_is_initialized = false;
+}
+
+/// @brief Change the name of the window
+/// @param title desired new title of the window
+void Window::set_title(const std::string& title) {
+	// TODO: change the name of the window
+	m_title = title;	
 }
 
 // Open and display the window

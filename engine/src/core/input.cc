@@ -17,6 +17,8 @@ void InputHandler::startup() {
         Logger::get()->fatal("Cannot perform InputHandler startup twice");
         exit(1);
     }
+    
+    Logger::get()->debug("Startup input subsystem successful.");
 }
 
 /// @brief Shutdown input subsystem;
@@ -27,6 +29,7 @@ void InputHandler::shutdown() {
     } else {
         Logger::get()->warn("Attempting to shutdown Input subsystem when not initialized");
     }
+    Logger::get()->debug("Shutdown input subsystem successful.");
 }
 
 /// @brief Retrieve reference to the input subsystem if it is initialized.
@@ -40,16 +43,14 @@ InputHandler* InputHandler::get() {
     }
 }
 
-// Constructor
+/// @brief Constructor
 InputHandler::InputHandler() 
 {
     m_state.is_initialized = true;
-    Logger::get()->info("Input subsystem is initialized.");
 }
 
-// Destructor
+/// @brief Destructor
 InputHandler::~InputHandler() {
-    Logger::get()->info("Input handler shutting down");
     m_state.is_initialized = false;
 }
 

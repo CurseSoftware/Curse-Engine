@@ -10,6 +10,8 @@ Application* Application::instance = nullptr;
 void Application::startup() noexcept {
     logger::Logger::startup();
     platform::Platform::startup();
+    InputHandler::startup();
+
 
     logger::Logger::get()->debug("Application created.");
     if (!Application::instance) {
@@ -22,7 +24,9 @@ void Application::startup() noexcept {
 /// @brief Shutdown application and all subsystems.
 void Application::shutdown() noexcept {
     // Shutdown in reverse order of the startup
-    logger::Logger::get()->debug("Shutting down application");
+    logger::Logger::get()->debug("Shutting down application...");
+
+    InputHandler::shutdown();
     platform::Platform::shutdown();
     logger::Logger::shutdown();
 }

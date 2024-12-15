@@ -20,22 +20,32 @@ using XWindow = Window;
 namespace gravity {
 namespace core {
 
+struct WindowPacket {
+    u32 width;
+    u32 height;
+#if defined(Q_PLATFORM_WINDOWS)
+    HWND hwindow;
+    HINSTANCE hinstance;
+
+#elif defined (Q_PLATFORM_LINUX)
+#endif
+};
+
+/// Types of errors that can occur when handling a Window object
+enum class WindowError {
+    REGISTRATIONFAILED,
+    CREATIONFAILED,
+
+    TOTAL,
+};
+
 /// Window is the GUI window that is opened and contains all the events
-class QAPI Window {
+class Window {
 public:
-    Window(u32 width, u32 height, std::string title)
-        : m_width(width)
-        , m_height(height)
-        , m_title(title)
-        , m_can_resize(false)
-        , m_is_initialized(false)
-        /* , m_input(InputHandler()) */
-        , m_should_close(false)
-    {
-        _init();
-    }
+    static Result<Window, WindowError> create(u32 width, u32 height, std::string title);
+    
     Window(const Window&) = delete; // do not allow the window to be copied
-    Window(Window&& other);
+    Window(Window&& other); // Platform-dependent
 
     ~Window();
 
@@ -58,6 +68,17 @@ public:
     bool pump_messages();
 
 private:
+    Window(const WindowPacket& info);
+    // Window(u32 width, u32 height, std::string title)
+    //     : m_width(width)
+    //     , m_height(height)
+    //     , m_title(title)
+    //     , m_can_resize(false)
+    //     , m_is_initialized(false)
+    //     , m_should_close(false)
+    // {
+    //     _init();
+    // }
     
     u32 m_width, m_height; // the dimensions of the window
     std::string m_title;   // the  title of the window to be displayed at the top

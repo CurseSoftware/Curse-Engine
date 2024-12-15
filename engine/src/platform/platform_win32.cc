@@ -9,6 +9,7 @@ namespace gravity {
 
 namespace platform {
 using namespace core;
+using namespace core::logger;
 
 Platform* Platform::instance = nullptr;
 static double clock_frequency;
@@ -102,11 +103,13 @@ void Platform::startup() {
 	QueryPerformanceFrequency(&frequency);
 	Platform::get()->clock_frequency = 1.0f / static_cast<double>(frequency.QuadPart);
 	QueryPerformanceCounter(&Platform::get()->start_time);
+    
+    Logger::get()->debug("Startup platform <Win32> successful.");
 }
 
 void Platform::shutdown() {
-    logger::Logger::get()->debug("Shutting down platform.");
     if (Platform::instance) {
+        logger::Logger::get()->debug("Shutdown platform <Win32> successful.");
         delete Platform::instance;
         Platform::instance = nullptr;
     }
