@@ -5,6 +5,7 @@ namespace gravity {
 
 namespace core { 
 Application* Application::instance = nullptr;
+using namespace logger;
 
 /// @brief Startup behavior for the application. This starts up all necessary subsystems as well.
 void Application::startup() noexcept {
@@ -31,12 +32,23 @@ void Application::shutdown() noexcept {
     logger::Logger::shutdown();
 }
 
-result::Result<int, ApplicationError> Application::register_window(
+result::Result<Window, ApplicationError> Application::register_window(
     std::string name,
     u32 width,
     u32 height
 ) noexcept {
-    return result::Err(ApplicationError::WINDOW_REGISTER);
+    auto r_window = Window::create(width, height, name);
+
+    r_window.match(
+        [](Window& wnd) {
+            Logger::get()->info("Window created successfully");
+        },
+        [](WindowError err) {
+            Logger::get()->error("Window creation failed");
+        }
+    );
+
+    return Err(ApplicationError::WINDOW_REGISTER);
 }
 
 /// @brief Application constructor

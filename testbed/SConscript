@@ -3,12 +3,15 @@ Import('env', 'lib')
 testbed_env = env.Clone()
 testbed_env.Append(
     CPPPATH=['#testbed/include', '#engine/include'],
-    CPPDEFINES=['QIMPORT']
+    CPPDEFINES=['QIMPORT'],
+    # LIBS=['user32']
 )
 
 sources = Glob('src/*.cc')
 
 target = 'testbed'
 
-executable = testbed_env.Program(target=target, source=sources, LIBS=[lib])
+testbed_env['LIBS'].extend(lib)
+executable = testbed_env.Program(target=target, source=sources)
+# executable = testbed_env.Program(target=target, source=sources, LIBS=[lib])
 Return('executable')
