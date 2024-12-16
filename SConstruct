@@ -30,7 +30,7 @@ else:
 # env.Append(ENV={'PATH': os.environ['PATH']}) 
 # Platorm Compiler Flags 
 if env['PLATFORM'] == 'win32':
-    env.Append(tools=['msvc','mslink','mslib'])
+    env.Append(tools=['msvc'])
     env.Append(CCFLAGS=['/EHsc'])
     env.Append(CXXFLAGS=['/std:c++20'])  # For C++20
     env.Append(LIBS=[

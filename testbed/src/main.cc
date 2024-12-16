@@ -5,7 +5,13 @@
 
 
 int main() noexcept {
-    gravity::core::Application::startup();
+    auto app = gravity::core::Application::startup(
+        "Gravity",
+        800,
+        600
+    );
+
+    app->run();
     gravity::core::Application::shutdown();
 
     return EXIT_SUCCESS;

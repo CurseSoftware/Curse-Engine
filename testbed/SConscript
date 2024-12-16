@@ -11,7 +11,7 @@ sources = Glob('src/*.cc')
 
 target = 'testbed'
 
+# Extend the libraries rather than resetting them
 testbed_env['LIBS'].extend(lib)
 executable = testbed_env.Program(target=target, source=sources)
-# executable = testbed_env.Program(target=target, source=sources, LIBS=[lib])
 Return('executable')

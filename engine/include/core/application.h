@@ -18,19 +18,18 @@ enum class ApplicationError {
 
 class Application {
 public:
-    static void startup() noexcept;
+    static Application* startup(const std::string& name, u32 width, u32 height) noexcept;
     static void shutdown() noexcept;
+    static Application* get() {
+        if (!Application::instance) {
+            logger::Logger::get()->error("Unable to retrieve uninitialized application");
+            exit(1);
+        }
 
-    /// @brief Create and register a window to the application
-    /// @param name The name of the window
-    /// @param width The desired width of the window
-    /// @param height The desired height of the window
-    /// @return A result of the window
-    Result<Window, ApplicationError> register_window(
-        std::string name,
-        u32 width,
-        u32 height
-    ) noexcept;
+        return Application::instance;
+    }
+
+    void run();
 
 private:
     Application() noexcept;

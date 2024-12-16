@@ -22,7 +22,7 @@ Window::Window(const WindowPacket& packet)
 	, m_width(packet.width)
 	, m_height(packet.height)
 	, m_can_resize(false)
-	, m_is_initialized(false)
+	, m_is_initialized(true)
 {
 }
 
@@ -39,6 +39,8 @@ Window::~Window() {
 Window::Window(Window&& other) {
 	std::swap(m_width, other.m_width);
 	std::swap(m_height, other.m_height);
+	std::swap(m_window, other.m_window);
+	std::swap(m_hinstance, other.m_hinstance);
 	std::swap(m_can_resize, other.m_can_resize);
 	std::swap(m_is_initialized, other.m_is_initialized);
 	std::swap(m_should_close, other.m_should_close);

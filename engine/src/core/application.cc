@@ -8,15 +8,21 @@ Application* Application::instance = nullptr;
 using namespace logger;
 
 /// @brief Startup behavior for the application. This starts up all necessary subsystems as well.
-void Application::startup() noexcept {
+Application* Application::startup(const std::string& name, u32 width, u32 height) noexcept {
     logger::Logger::startup();
     platform::Platform::startup();
     InputHandler::startup();
 
+    Window wnd = Window::create(width, height, name).unwrap();
+    wnd.show();
+    while (!wnd.should_close()) {
+
+    }
 
     logger::Logger::get()->debug("Application created.");
     if (!Application::instance) {
         Application::instance = new Application();
+        return Application::instance;
     } else {
         exit(1);
     }
@@ -32,23 +38,8 @@ void Application::shutdown() noexcept {
     logger::Logger::shutdown();
 }
 
-result::Result<Window, ApplicationError> Application::register_window(
-    std::string name,
-    u32 width,
-    u32 height
-) noexcept {
-    auto r_window = Window::create(width, height, name);
-
-    r_window.match(
-        [](Window& wnd) {
-            Logger::get()->info("Window created successfully");
-        },
-        [](WindowError err) {
-            Logger::get()->error("Window creation failed");
-        }
-    );
-
-    return Err(ApplicationError::WINDOW_REGISTER);
+/// @brief Run the application
+void Application::run() {
 }
 
 /// @brief Application constructor
