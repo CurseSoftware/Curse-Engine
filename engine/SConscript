@@ -6,8 +6,9 @@ engine_env = env.Clone()
 engine_env.Append(
     CPPPATH=['include', 'src'],
     CPPDEFINES=['QEXPORT'],
-    LIBS=['user32']
+    # LIBS=['user32']
 )
+engine_env['LIBS'].extend(['user32'])
 
 # Source files for the library
 sources = Glob( 'src/core/*.cc' ) + Glob( 'src/platform/*.cc' )

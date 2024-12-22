@@ -1,4 +1,5 @@
 #include "core/defines.h"
+#include "core/logger.h"
 #include "platform/platform.h"
 #include <string>
 #include <string.h>

@@ -7,6 +7,8 @@
 #include "defines.h"
 #include "platform/platform.h"
 
+using namespace gravity::platform;
+
 namespace gravity {
 namespace core {
 

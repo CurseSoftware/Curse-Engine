@@ -1,6 +1,6 @@
+#include "core/logger.h"
 #include "platform/platform.h"
 #include "core/defines.h"
-#include "core/logger.h"
 
 #ifdef Q_PLATFORM_WINDOWS
 #include <windows.h>

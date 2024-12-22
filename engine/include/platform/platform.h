@@ -1,5 +1,6 @@
 #pragma once
 #include "core/defines.h"
+#include "core/window.h"
 
 #include <string>
 #include <iostream>
@@ -49,6 +50,8 @@ public:
     void console_error(color msg_color, const std::string& err);
 
     double get_absolute_time();
+
+    // Result<core::Window, core::WindowError> create_window(u32 width, u32 height, std::string title);
 
 private:
     Platform() {}
