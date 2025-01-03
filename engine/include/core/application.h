@@ -6,6 +6,7 @@
 #include "input.h"
 #include "window.h"
 #include "platform/platform.h"
+#include "events.h"
 
 #include <map>
 
@@ -29,17 +30,23 @@ public:
         return Application::instance;
     }
 
+    static bool on_event(EventCode code, void* sender, void* listener, EventData data);
+    static bool on_key(EventCode code, void* sender, void* listener, EventData data);
+    static bool on_resize(EventCode code, void* sender, void* listener, EventData data);
+    static bool on_mouse_move(EventCode code, void* sender, void* listener, EventData data);
+
     void run();
 
 private:
     Application() noexcept;
-
     static Application* instance;
 
-    std::map<std::string, Window> windows;
-
+    struct {
+        std::string name { "" };
+        bool should_quit { false };
+        bool is_running { false };
+    } state;
 };
-
 
 } // core namespace
 } // gravity namespace

@@ -1,5 +1,6 @@
 #include "core/input.h"
 #include "core/mouse_buttons.h"
+#include "core/events.h"
 
 namespace gravity {
 namespace core {
@@ -77,15 +78,40 @@ std::tuple<i32, i32> InputHandler::get_mouse_position() {
 }
 
 void InputHandler::process_key(Keys key, bool pressed) {
+    switch (key) {
+        case Keys::KEY_LALT: 
+            logger::Logger::get()->debug("LALT");
+            break;
+        case Keys::KEY_RALT: 
+            logger::Logger::get()->debug("RALT");
+            break;
+        case Keys::KEY_LCONTROL: 
+            logger::Logger::get()->debug("LCONTROL");
+            break;
+        case Keys::KEY_RCONTROL: 
+            logger::Logger::get()->debug("RCONTROL");
+            break;
+        case Keys::KEY_LSHIFT: 
+            logger::Logger::get()->debug("LSHIFT");
+            break;
+        case Keys::KEY_RSHIFT: 
+            logger::Logger::get()->debug("RSHIFT");
+            break;
+        default: 
+            break;
+    }
+    
     if (m_state.keyboard_curr_state.keys[key] != pressed) {
         m_state.keyboard_curr_state.keys[key] = pressed;
 
-        if (pressed)
-            Logger::get()->debug("Key pressed: %c", static_cast<char>(key));
-        else
-            Logger::get()->debug("Key released: %c", static_cast<char>(key));
-
-        // TODO: fire event once events are setup
+        EventData data = {
+            .u16 = static_cast<u16>(key)
+        };
+        EventHandler::get()->fire_event(
+            pressed ? EventCode::KEY_PRESSED : EventCode::KEY_RELEASED,
+            nullptr,
+            data
+        );
     }
 }
 
