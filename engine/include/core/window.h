@@ -69,16 +69,6 @@ public:
 
 private:
     Window(const WindowPacket& info);
-    // Window(u32 width, u32 height, std::string title)
-    //     : m_width(width)
-    //     , m_height(height)
-    //     , m_title(title)
-    //     , m_can_resize(false)
-    //     , m_is_initialized(false)
-    //     , m_should_close(false)
-    // {
-    //     _init();
-    // }
     
     u32 m_width, m_height; // the dimensions of the window
     std::string m_title;   // the  title of the window to be displayed at the top

@@ -9,7 +9,6 @@ namespace gravity {
 
 namespace platform {
 using namespace core;
-using namespace core::logger;
 
 Platform* Platform::instance = nullptr;
 static double clock_frequency;
@@ -31,6 +30,9 @@ constexpr int COLOR_LIGHT_PURPLE = 13;
 constexpr int COLOR_LIGHT_YELLOW = 14;
 constexpr int COLOR_BRIGHT_WHITE = 15;
 
+/// @brief Convert color object to the ascii value for printing
+/// @param c Color object to convert
+/// @return Ascii code for printing color to console
 constexpr int color_to_value(color c) {
     switch (c) {
         case color::RED:
@@ -54,6 +56,9 @@ constexpr int color_to_value(color c) {
     }
 }
 
+/// @brief Write a message to the console
+/// @param msg_color color of the message
+/// @param msg The message text to write
 void Platform::console_write(color msg_color, const std::string& msg) {
     CONSOLE_SCREEN_BUFFER_INFO Info;
 	HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -69,6 +74,9 @@ void Platform::console_write(color msg_color, const std::string& msg) {
 	SetConsoleTextAttribute(console_handle, Attributes);
 }
 
+/// @brief Write error to the console
+/// @param msg_color Color of the message 
+/// @param msg Message text
 void Platform::console_error(color msg_color, const std::string& msg) {
     CONSOLE_SCREEN_BUFFER_INFO Info;
 	HANDLE console_handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -84,7 +92,7 @@ void Platform::console_error(color msg_color, const std::string& msg) {
 	SetConsoleTextAttribute(console_handle, Attributes);
 }
 
-/// @return The absolute time in epoch since the 1969
+/// @brief Get the absolute time since 1969 in epoch
 double Platform::get_absolute_time() {
 	LARGE_INTEGER now_time;
 	QueryPerformanceCounter(&now_time);
@@ -92,7 +100,7 @@ double Platform::get_absolute_time() {
 }
 
 /// @brief Startup behavior for the Win32 Platform
-void Platform::startup() {
+void Platform::startup(const std::string& name, u32 width, u32 height) {
     if (!Platform::instance) {
         Platform::instance = new Platform();
     } else {
@@ -103,10 +111,19 @@ void Platform::startup() {
 	QueryPerformanceFrequency(&frequency);
 	Platform::get()->clock_frequency = 1.0f / static_cast<double>(frequency.QuadPart);
 	QueryPerformanceCounter(&Platform::get()->start_time);
+
+    Window wnd = Window::create(width, height, name).unwrap();
+    wnd.show();
+    while (!wnd.should_close()) {
+
+    }
     
-    Logger::get()->debug("Startup platform <Win32> successful.");
+    logger::Logger::get()->debug("Startup platform <Win32> successful.");
 }
 
+
+
+/// @brief Shutdown behavior for the Win32 platform
 void Platform::shutdown() {
     if (Platform::instance) {
         logger::Logger::get()->debug("Shutdown platform <Win32> successful.");

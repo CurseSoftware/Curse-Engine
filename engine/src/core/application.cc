@@ -1,5 +1,6 @@
 #include <iostream>
 #include "core/application.h"
+#include "core/events.h"
 
 namespace gravity {
 
@@ -10,14 +11,15 @@ using namespace logger;
 /// @brief Startup behavior for the application. This starts up all necessary subsystems as well.
 Application* Application::startup(const std::string& name, u32 width, u32 height) noexcept {
     logger::Logger::startup();
-    platform::Platform::startup();
     InputHandler::startup();
+    EventHandler::startup();
+    platform::Platform::startup(name, width, height);
 
-    Window wnd = Window::create(width, height, name).unwrap();
-    wnd.show();
-    while (!wnd.should_close()) {
+    // Window wnd = Window::create(width, height, name).unwrap();
+    // wnd.show();
+    // while (!wnd.should_close()) {
 
-    }
+    // }
 
     logger::Logger::get()->debug("Application created.");
     if (!Application::instance) {
@@ -32,9 +34,9 @@ Application* Application::startup(const std::string& name, u32 width, u32 height
 void Application::shutdown() noexcept {
     // Shutdown in reverse order of the startup
     logger::Logger::get()->debug("Shutting down application...");
-
     InputHandler::shutdown();
     platform::Platform::shutdown();
+    EventHandler::shutdown();
     logger::Logger::shutdown();
 }
 

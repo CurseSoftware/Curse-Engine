@@ -14,11 +14,11 @@ void InputHandler::startup() {
     if (!InputHandler::handler_instance) {
         InputHandler::handler_instance = new InputHandler();
     } else {
-        Logger::get()->fatal("Cannot perform InputHandler startup twice");
+        // Logger::get()->fatal("Cannot perform InputHandler startup twice");
         exit(1);
     }
     
-    Logger::get()->debug("Startup input subsystem successful.");
+    // Logger::get()->debug("Startup input subsystem successful.");
 }
 
 /// @brief Shutdown input subsystem;
@@ -38,7 +38,7 @@ InputHandler* InputHandler::get() {
     if (InputHandler::handler_instance) {
         return handler_instance;
     } else {
-        Logger::get()->fatal("Cannot retrieve reference to uninitialiezd InputHandler");
+        // Logger::get()->fatal("Cannot retrieve reference to uninitialiezd InputHandler");
         exit(1);
     }
 }

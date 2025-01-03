@@ -30,7 +30,7 @@ enum class color : int {
 
 class Platform {
 public:
-    static void startup();
+    static void startup(const std::string& name, u32 width, u32 height);
     static void shutdown();
 
     /// @return singleton instance of the Platofrm
