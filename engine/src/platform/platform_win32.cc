@@ -1,6 +1,5 @@
 #include "core/logger.h"
 #include "platform/platform.h"
-#include "core/window.h"
 #include "core/defines.h"
 
 #ifdef Q_PLATFORM_WINDOWS
@@ -113,13 +112,9 @@ void Platform::startup(const std::string& name, u32 width, u32 height) {
 	Platform::get()->clock_frequency = 1.0f / static_cast<double>(frequency.QuadPart);
 	QueryPerformanceCounter(&Platform::get()->start_time);
 
-    // auto w = std::make_unique<Window>(Window::create(width, height, name).unwrap());
-    // Platform::instance->wnd = std::move(w);
     Platform::instance->_primary_window_name = name;
     Platform::instance->_windows[name] = std::make_unique<Window>(Window::create(width, height, name).unwrap());
     Platform::instance->_windows[name]->show();
-    // Platform::instance->wnd = std::make_unique<Window>(Window::create(width, height, name).unwrap());
-    // Platform::instance->wnd->show();
 
     
     core::logger::Logger::get()->debug("Startup platform <Win32> successful.");

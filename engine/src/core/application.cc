@@ -5,8 +5,10 @@
 namespace gravity {
 
 namespace core { 
-Application* Application::instance = nullptr;
 using namespace logger;
+
+// Singleton for application
+Application* Application::instance = nullptr;
 
 /// @brief Startup behavior for the application. This starts up all necessary subsystems as well.
 Application* Application::startup(const std::string& name, u32 width, u32 height) noexcept {
@@ -36,7 +38,7 @@ Application* Application::startup(const std::string& name, u32 width, u32 height
 
 /// @brief Shutdown application and all subsystems.
 void Application::shutdown() noexcept {
-    // Shutdown in reverse order of the startup
+    // NOTE: Shutdown in reverse order of the startup
     logger::Logger::get()->debug("Shutting down application...");
     InputHandler::shutdown();
     platform::Platform::shutdown();
@@ -56,9 +58,14 @@ void Application::run() {
 }
 
 /// @brief Application constructor
-Application::Application() noexcept {
-}
+Application::Application() noexcept {}
 
+/// @brief Callback function to handle events
+/// @param code Event Code
+/// @param sender Who sent the event
+/// @param listener Who is listening
+/// @param data The data from the incoming event
+/// @return `true` if we handle the event. `false` otherwise
 bool Application::on_event(EventCode code, void* sender, void* listener, EventData data) {
     switch (code) {
         case EventCode::APPLICATION_QUIT: {
@@ -73,6 +80,12 @@ bool Application::on_event(EventCode code, void* sender, void* listener, EventDa
     return false;
 }
 
+/// @brief Callback function to handle key events for the application
+/// @param code Event Code
+/// @param sender Who sent the event
+/// @param listener Who is listening
+/// @param data The data from the incoming event
+/// @return `true` if we handle the event. `false` otherwise
 bool Application::on_key(EventCode code, void* sender, void* listener, EventData data) {
     switch (code) {
         case EventCode::KEY_PRESSED: {
@@ -95,10 +108,22 @@ bool Application::on_key(EventCode code, void* sender, void* listener, EventData
     return true;
 }
 
+/// @brief Callback function to handle window resizing events
+/// @param code Event Code
+/// @param sender Who sent the event
+/// @param listener Who is listening
+/// @param data The data from the incoming event
+/// @return `true` if we handle the event. `false` otherwise
 bool Application::on_resize(EventCode code, void* sender, void* listener, EventData data) {
     return false;
 }
 
+/// @brief Callback function to handle mouse movement events
+/// @param code Event Code
+/// @param sender Who sent the event
+/// @param listener Who is listening
+/// @param data The data from the incoming event
+/// @return `true` if we handle the event. `false` otherwise
 bool Application::on_mouse_move(EventCode code, void* sender, void* listener, EventData data) {
     switch (code) {
         case EventCode::MOUSE_MOVE: {

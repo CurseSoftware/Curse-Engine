@@ -1,6 +1,5 @@
 #pragma once
 #include "core/defines.h"
-// #include "core/window.h"
 #include "core/types.h"
 
 #include <string>
@@ -93,7 +92,7 @@ private:
     void _init();
 };
 
-// The list of colors that are able to be printed to the console
+/// @brief The list of colors that are able to be printed to the console
 enum class color : int {
     RED,
     MAGENTA,
@@ -108,6 +107,7 @@ enum class color : int {
     NUM_COLORS
 };
 
+/// @brief Subsystem for handling platform-dependent tasks
 class Platform {
 public:
     static void startup(const std::string& name, u32 width, u32 height);
@@ -127,12 +127,8 @@ public:
 
     void pump_messages();
     void console_write(color msg_color, const std::string& msg);
-
     void console_error(color msg_color, const std::string& err);
-
     double get_absolute_time();
-
-    // Result<core::Window, core::WindowError> create_window(u32 width, u32 height, std::string title);
 
 private:
     Platform() {}
@@ -140,21 +136,16 @@ private:
 
     static Platform* instance;
 
-    std::string _primary_window_name { "" };
-    std::unordered_map<std::string, std::unique_ptr<Window>> _windows;
-    // std::unique_ptr<Window> wnd = nullptr;
-    // std::optional<std::unique_ptr<core::Window>> wnd;
 
     // MEMBERS //
-    /* Clock */
+    std::string _primary_window_name { "" };
+    std::unordered_map<std::string, std::unique_ptr<Window>> _windows;
     double clock_frequency;
+    
     #if defined(Q_PLATFORM_WINDOWS)
     LARGE_INTEGER start_time;
-    #endif
+    #endif // Q_PLATFORM_WINDOWS
 };
-
-
-
 
 } // platform namespace
 } // gravity namespace

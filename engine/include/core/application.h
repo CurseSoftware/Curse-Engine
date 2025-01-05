@@ -4,7 +4,6 @@
 #include "logger.h"
 #include "types.h"
 #include "input.h"
-#include "window.h"
 #include "platform/platform.h"
 #include "events.h"
 
