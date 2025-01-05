@@ -15,6 +15,7 @@ namespace gravity {
 
 namespace platform {
 
+/// @brief Information relevant for the creation of a window
 struct WindowPacket {
     u32 width;
     u32 height;
@@ -26,7 +27,7 @@ struct WindowPacket {
 #endif
 };
 
-/// Types of errors that can occur when handling a Window object
+/// @brief Types of errors that can occur when handling a Window object
 enum class WindowError {
     REGISTRATIONFAILED,
     CREATIONFAILED,
@@ -34,7 +35,7 @@ enum class WindowError {
     TOTAL,
 };
 
-/// Window is the GUI window that is opened and contains all the events
+/// @brief Window is the GUI window that is opened and contains all the events
 class Window {
 public:
     static Result<Window, WindowError> create(u32 width, u32 height, std::string title);
@@ -44,25 +45,28 @@ public:
 
     ~Window();
 
-    // allow the window to be resized
+    /// @brief allow the window to be resized
     void allow_resize() { m_can_resize = true; }
 
-    // open and show the window
+    /// @brief open and show the window
     void show();
 
-    // Set the title of the window
+    /// @brief Set the title of the window
     void set_title(const std::string& title);
 
-    // Shutdown behavior for the Window
+    /// @brief Shutdown behavior for the Window
     void shutdown();
 
-    // Whether or not the window should be closed
+    /// @brief Whether or not the window should be closed
     bool should_close();
 
-    // Pump the window event messages to be handled
+    /// @brief Pump the window event messages to be handled
     bool pump_messages();
 
-    void close() { m_should_close = true; }
+    void close() { 
+        m_should_close = true; 
+        m_is_initialized = false;
+    }
 
 private:
     Window(const WindowPacket& info);
@@ -138,8 +142,8 @@ private:
 
 
     // MEMBERS //
-    std::string _primary_window_name { "" };
-    std::unordered_map<std::string, std::unique_ptr<Window>> _windows;
+    std::string _primary_window_name { "" };                           // name of the platform's primary window
+    std::unordered_map<std::string, std::unique_ptr<Window>> _windows; // table of all created windows keyed on their names
     double clock_frequency;
     
     #if defined(Q_PLATFORM_WINDOWS)

@@ -20,6 +20,7 @@ Application* Application::startup(const std::string& name, u32 width, u32 height
     EventHandler::get()->register_event(EventCode::KEY_PRESSED, nullptr, Application::on_key);
     EventHandler::get()->register_event(EventCode::KEY_RELEASED, nullptr, Application::on_key);
     EventHandler::get()->register_event(EventCode::MOUSE_MOVE, nullptr, Application::on_mouse_move);
+    EventHandler::get()->register_event(EventCode::RESIZED, nullptr, Application::on_resize);
 
     platform::Platform::startup(name, width, height);
 
@@ -115,7 +116,7 @@ bool Application::on_key(EventCode code, void* sender, void* listener, EventData
 /// @param data The data from the incoming event
 /// @return `true` if we handle the event. `false` otherwise
 bool Application::on_resize(EventCode code, void* sender, void* listener, EventData data) {
-    return false;
+    return true;
 }
 
 /// @brief Callback function to handle mouse movement events
