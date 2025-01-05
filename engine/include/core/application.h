@@ -44,6 +44,7 @@ private:
         std::string name { "" };
         bool should_quit { false };
         bool is_running { false };
+        bool is_suspended { false };
     } state;
 };
 
