@@ -1,5 +1,6 @@
 #include "core/logger.h"
 #include "platform/platform.h"
+#include "core/window.h"
 #include "core/defines.h"
 
 #ifdef Q_PLATFORM_WINDOWS
@@ -8,7 +9,7 @@
 namespace gravity {
 
 namespace platform {
-using namespace core;
+// using namespace core;
 
 Platform* Platform::instance = nullptr;
 static double clock_frequency;
@@ -112,13 +113,23 @@ void Platform::startup(const std::string& name, u32 width, u32 height) {
 	Platform::get()->clock_frequency = 1.0f / static_cast<double>(frequency.QuadPart);
 	QueryPerformanceCounter(&Platform::get()->start_time);
 
-    Window wnd = Window::create(width, height, name).unwrap();
-    wnd.show();
-    while (!wnd.should_close()) {
+    // auto w = std::make_unique<Window>(Window::create(width, height, name).unwrap());
+    // Platform::instance->wnd = std::move(w);
+    Platform::instance->_primary_window_name = name;
+    Platform::instance->_windows[name] = std::make_unique<Window>(Window::create(width, height, name).unwrap());
+    Platform::instance->_windows[name]->show();
+    // Platform::instance->wnd = std::make_unique<Window>(Window::create(width, height, name).unwrap());
+    // Platform::instance->wnd->show();
 
-    }
     
-    logger::Logger::get()->debug("Startup platform <Win32> successful.");
+    core::logger::Logger::get()->debug("Startup platform <Win32> successful.");
+}
+
+/// @brief Pump messages to places that need it
+void Platform::pump_messages() {
+    for (const auto& window : Platform::get()->_windows) {
+        window.second->pump_messages();
+    }
 }
 
 
@@ -126,7 +137,8 @@ void Platform::startup(const std::string& name, u32 width, u32 height) {
 /// @brief Shutdown behavior for the Win32 platform
 void Platform::shutdown() {
     if (Platform::instance) {
-        logger::Logger::get()->debug("Shutdown platform <Win32> successful.");
+        core::logger::Logger::get()->debug("Shutdown platform <Win32> successful.");
+        Platform::instance->_windows[Platform::get()->_primary_window_name]->close();
         delete Platform::instance;
         Platform::instance = nullptr;
     }

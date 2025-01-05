@@ -51,7 +51,7 @@ void Application::run() {
     
     logger::Logger::get()->info("Running application.");
     while (inst->state.is_running == true) {
-
+        Platform::get()->pump_messages();
     }
 }
 

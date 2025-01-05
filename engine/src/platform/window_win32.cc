@@ -1,13 +1,14 @@
-#include "core/window.h"
+// #include "core/window.h"
 #include "core/defines.h"
 #include "core/input.h"
+#include "core/events.h"
 
 #ifdef Q_PLATFORM_WINDOWS
 
 namespace gravity {
-namespace core {
+namespace platform {
 
-using namespace logger;
+using namespace core::logger;
 // InputHandler* input_handler = InputHandler::get_reference();
 
 bool window_should_close = false;
@@ -295,6 +296,7 @@ LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 
 	case WM_CLOSE:
 	{
+		core::EventHandler::get()->fire_event(core::EventCode::APPLICATION_QUIT, nullptr, {});
 		window_should_close = true;
 		return true;
 	} break;
@@ -309,7 +311,7 @@ LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		u32 width = r.right - r.left;
 		u32 height = r.bottom - r.top;
 
-		InputHandler::get()->process_window_resize(
+		core::InputHandler::get()->process_window_resize(
 			width,
 			height
 		);
@@ -323,11 +325,12 @@ LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		Keys key = static_cast<Keys>(wParam);
 
 		// Pass the input subsystem
-		InputHandler::get()->process_key(key, pressed);
+		core::InputHandler::get()->process_key(key, pressed);
 	} break;
 
 	case WM_MOUSEMOVE:
 		// Fire an event for mouse movement
+
 		break;
 	case WM_MOUSEWHEEL:
 		// Fire an event for mouse movement
@@ -346,7 +349,7 @@ LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
-} // core namespace
+} // platform namespace
 } // bifrost namespace
 
 #endif // Q_PLATFORM_WINDOWS
