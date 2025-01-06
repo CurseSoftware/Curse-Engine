@@ -16,11 +16,11 @@ struct config {
 };
 
 /// @brief Interface for renderer backends to impliment
-class IRenderer {
+class Renderer {
 public:
-    virtual ~IRenderer() = default;
+    virtual ~Renderer() = default;
 
-    virtual bool initialize(const config& conf) = 0;
+    virtual bool startup(const config& conf) = 0;
     virtual void shutdown() = 0;
 
     virtual void begin_frame() = 0;

@@ -8,13 +8,14 @@ engine_env.Append(
     CPPDEFINES=['QEXPORT'],
     # LIBS=['user32']
 )
-engine_env['LIBS'].extend(['user32'])
+engine_env['LIBS'].extend(['user32.lib'])
 
 # Source files for the library
 sources = Glob( 'src/core/*.cc' ) + Glob( 'src/platform/*.cc' )
 
 # Build the library (static or shared)
 lib = engine_env.Library(target='engine', source=sources)
+# lib = engine_env.SharedLibrary(target='engine', source=sources)
 
 # Export the library and include paths for other projects
 Export('lib', 'engine_env')

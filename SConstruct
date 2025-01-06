@@ -33,10 +33,11 @@ if env['PLATFORM'] == 'win32':
     # env.Append(tools=['msvc'])
     env.Append(CCFLAGS=['/EHsc'])
     env.Append(CXXFLAGS=['/std:c++20'])  # For C++20
-    env.Append(LIBS=[
-        'user32.lib',   # For message translation, window handling
-        # 'kernel32.lib'  # For core Windows system services
-    ])
+    env.Append(LIBS=['user32'])
+    # env.Append(LIBS=[
+    #     'user32.lib',   # For message translation, window handling
+    #     # 'kernel32.lib'  # For core Windows system services
+    # ])
     # env.Append(LINKCOMSTR='Linking $TARGET: $LIBS')
     # env.Append(LIBPATH=[
     #     'C:/Program Files (x86)/Windows Kits/10/Lib/10.0.22000.0/um/x64'  # Adjust path for your SDK version and architecture

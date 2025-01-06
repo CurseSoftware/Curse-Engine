@@ -3,11 +3,13 @@
 #include "core/types.h"
 #include "renderer/renderer.h"
 
+#if defined(Q_PLATFORM_WINDOWS)
+
 namespace gravity {
 namespace renderer {
-namespace vulkan {
+namespace dx12 {
 
-class VK_Renderer : public Renderer {
+class DX12_Renderer : public Renderer {
 public:
     bool startup(const config& conf) override;
     void shutdown() override;
@@ -17,11 +19,11 @@ public:
     void present() override;
 private:
     platform::Window* _wnd;
-
-
 };
 
 
-} // vulkan namespace
+} // dx12 namespace
 } // renderer namespace
 } // gravity namespace
+
+#endif // Q_PLATFORM_WIN32

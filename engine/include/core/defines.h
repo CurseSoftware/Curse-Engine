@@ -17,20 +17,26 @@
 #define Q_PLATFORM_APPLE 1
 #endif
 
-#ifdef QEXPORT
-#ifdef _MSC_VER
-#define QAPI __declspec(dllexport)
+#ifdef QEXPORT 
+#define ENGINE_API __declspec(dllexport)
 #else
-#define QAPI __attribute__((visibility("default")))
+#define ENGINE_API __declspec(dllimport)
 #endif
-#else
-// Imports
-#ifdef _MSC_VER
-#define QAPI __declspec(dllimport)
-#else
-#define QAPI
-#endif
-#endif
+
+// #ifdef QEXPORT
+// #ifdef _MSC_VER
+// #define QAPI __declspec(dllexport)
+// #else
+// #define QAPI __attribute__((visibility("default")))
+// #endif
+// #else
+// // Imports
+// #ifdef _MSC_VER
+// #define QAPI __declspec(dllimport)
+// #else
+// #define QAPI
+// #endif
+// #endif
 
 // Inlining
 #ifdef _MSC_VER

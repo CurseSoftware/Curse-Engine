@@ -6,6 +6,7 @@
 #include "input.h"
 #include "platform/platform.h"
 #include "events.h"
+#include "renderer/renderer.h"
 
 #include <map>
 

@@ -29,7 +29,7 @@ Application* Application::startup(const std::string& name, u32 width, u32 height
         Application::instance = new Application();
         Application::instance->state = {
             .name = name,
-            .should_quit = false
+            .should_quit = false,
         };
         return Application::instance;
     } else {

@@ -1,6 +1,7 @@
 #include "core/logger.h"
 #include "platform/platform.h"
 #include "core/defines.h"
+#include "renderer/dx12/renderer.h"
 
 #ifdef Q_PLATFORM_WINDOWS
 #include <windows.h>
@@ -126,8 +127,6 @@ void Platform::pump_messages() {
         window.second->pump_messages();
     }
 }
-
-
 
 /// @brief Shutdown behavior for the Win32 platform
 void Platform::shutdown() {
