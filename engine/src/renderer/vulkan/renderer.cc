@@ -7,24 +7,24 @@ namespace vulkan {
 /// @brief Initialize the renderer
 /// @param conf Configuration for the renderer
 /// @return true if successful. False otherwise
-bool VKRenderer::initialize(const config& conf) {
+bool VK_Renderer::startup(const config& conf) {
     return false;
 }
 
 /// @brief Shutdown the vulkan renderer
-void VKRenderer::shutdown() {
+void VK_Renderer::shutdown() {
 
 }
 
-void VKRenderer::begin_frame() {
+void VK_Renderer::begin_frame() {
 
 }
 
-void VKRenderer::end_frame() {
+void VK_Renderer::end_frame() {
 
 }
 
-void VKRenderer::present() {
+void VK_Renderer::present() {
 
 }
 

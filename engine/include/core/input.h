@@ -2,11 +2,16 @@
 #include "types.h"
 #include "keys.h"
 #include "mouse_buttons.h"
+#include "events.h"
 #include <tuple>
 #include "logger.h"
 
 
 namespace gravity {
+
+namespace platform {
+    class Window;
+}
 
 namespace core {
 
@@ -65,6 +70,33 @@ protected:
     InputHandler();
 };
 
-} // core namespace
+class KeyPressedEvent : public Event {
+public:
+    KeyPressedEvent(const platform::Window& wnd, Keys k)
+        : Event(EventType::KEY_PRESSED)
+        , _window(wnd)
+        , _key(k)
+    {}
 
+    const platform::Window& source_window() const override { return _window; }
+private:
+    const platform::Window& _window;
+    Keys _key;
+};
+
+class KeyReleasedEvent : public Event {
+public:
+    KeyReleasedEvent(const platform::Window& wnd, Keys k)
+        : Event(EventType::KEY_RELEASED)
+        , _window(wnd)
+        , _key(k)
+    {}
+
+    const platform::Window& source_window() const override { return _window; }
+private:
+    const platform::Window& _window;
+    Keys _key;
+};
+
+} // core namespace
 } // gravity namespace

@@ -1,7 +1,10 @@
 // #include "core/window.h"
 #include "core/defines.h"
+#include "core/application.h"
 #include "core/input.h"
 #include "core/events.h"
+#include "renderer/renderer.h"
+#include "renderer/dx12/renderer.h"
 
 #ifdef Q_PLATFORM_WINDOWS
 
@@ -18,13 +21,27 @@ constexpr const char* WINDOW_CLASS_NAME = "BIFROST WINDOW CLASS NAME";
 /// @brief Window constructor
 /// @param packet Packet containing information relevant to the window
 Window::Window(const WindowPacket& packet) 
-	: m_hinstance(packet.hinstance)
-	, m_window(packet.hwindow)
+	// : m_hinstance(packet.hinstance)
+	// , m_window(packet.hwindow)
+	: m_handle(WindowHandle{
+		.hwindow = packet.hwindow,
+		.hinstance = packet.hinstance,
+	})
 	, m_width(packet.width)
 	, m_height(packet.height)
 	, m_can_resize(false)
 	, m_is_initialized(true)
+	, m_renderer(new renderer::dx12::DX12_Renderer())
 {
+	m_renderer->startup(
+		renderer::config {
+			.width = m_width,
+			.height = m_height,
+			.vsync = true,
+			.enable_debug_layer = true,
+			.window_handle = m_handle
+		}
+	);
 }
 
 /// @brief Destroy the window
@@ -40,8 +57,9 @@ Window::~Window() {
 Window::Window(Window&& other) {
 	std::swap(m_width, other.m_width);
 	std::swap(m_height, other.m_height);
-	std::swap(m_window, other.m_window);
-	std::swap(m_hinstance, other.m_hinstance);
+	// std::swap(m_window, other.m_window);
+	// std::swap(m_hinstance, other.m_hinstance);
+	std::swap(m_handle, other.m_handle);
 	std::swap(m_can_resize, other.m_can_resize);
 	std::swap(m_is_initialized, other.m_is_initialized);
 	std::swap(m_should_close, other.m_should_close);
@@ -54,7 +72,7 @@ Window::Window(Window&& other) {
 /// @param height Height in pixels of the window
 /// @param title Name of the window
 /// @return Ok(Window) if successful. Err(err) otherwise.
-Result<Window, WindowError> Window::create(
+Result<Window*, WindowError> Window::create(
 	u32 width,
 	u32 height,
 	std::string title
@@ -138,102 +156,17 @@ Result<Window, WindowError> Window::create(
 	Logger::get()->info("Window created successfully");
 	Logger::get()->info("Window is initialized");
 
-	WindowPacket packet = {0};
+	WindowPacket packet = { 0 };
 	packet.hinstance = hinstance;
 	packet.hwindow = hwindow;
 	packet.width = width;
 	packet.height = height;
 
 	// m_is_initialized = true;
-	return Ok(Window(packet));
+	return Ok(new Window(packet));
 }
 
-void Window::_init() {
-	// input_handler = InputHandler::get_reference();
-	Logger::get()->info("Creating window.");
-
-	m_hinstance = GetModuleHandle(0);
-
-	// Setup and register the window class
-	HICON icon = LoadIcon(m_hinstance, IDI_APPLICATION);
-	WNDCLASSA wc{ 0 };
-	wc.style = CS_DBLCLKS;
-	wc.lpfnWndProc = Window::WindowProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = m_hinstance;
-	wc.hIcon = icon;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = NULL;
-	wc.lpszClassName = WINDOW_CLASS_NAME;
-
-	if (!RegisterClassA(&wc)) {
-		MessageBoxA(
-			0,
-			"Window registration failed",
-			"Error!",
-			MB_ICONEXCLAMATION | MB_OK
-		);
-		return;
-	}
-	Logger::get()->info("Window registration succeeded.");
-
-	// Create window
-	uint32_t client_x = 300;
-	uint32_t client_y = 100;
-	uint32_t client_width = m_width;
-	uint32_t client_height = m_height;
-
-	uint32_t window_x = client_x;
-	uint32_t window_y = client_y;
-	uint32_t window_width = client_width;
-	uint32_t window_height = client_height;
-
-	uint32_t window_style = WS_OVERLAPPED | WS_SYSMENU | WS_CAPTION;
-	uint32_t window_ex_style = WS_EX_APPWINDOW;
-
-	window_style |= WS_MAXIMIZEBOX;
-	window_style |= WS_MINIMIZEBOX;
-	window_style |= WS_THICKFRAME;
-
-	RECT border_rect = { 0,0,0,0 };
-	AdjustWindowRectEx(&border_rect, window_style, FALSE, window_ex_style);
-
-	window_x += border_rect.left;
-	window_y += border_rect.top;
-
-	// Grow by the size of the OS border
-	window_width += border_rect.right - border_rect.left;
-	window_height += border_rect.bottom - border_rect.top;
-
-	m_window = CreateWindowExA(
-		window_ex_style,
-		WINDOW_CLASS_NAME,
-		m_title.c_str(),
-		window_style,
-		window_x,
-		window_y,
-		window_width,
-		window_height,
-		nullptr,
-		nullptr,
-		m_hinstance,
-		nullptr
-	);
-
-	if (m_window == nullptr) {
-		Logger::get()->error("Failed to create window");
-		MessageBoxA(NULL, "Window creation failed", "Error!", MB_ICONEXCLAMATION | MB_OK);
-		return;
-	}
-
-	Logger::get()->info("Window created successfully");
-	Logger::get()->info("Window is initialized");
-
-	m_is_initialized = true;
-}
-
-// Gracefully exit the window shutdown
+/// @brief Gracefully exit the window shutdown
 void Window::shutdown() {
 	if (!m_is_initialized) {
 		Logger::get()->warn("Calling shutdown on uninitialized Window. Aborting");
@@ -264,7 +197,7 @@ void Window::show() {
 	Logger::get()->info("Showing window");
 	m_should_close = false;
 	window_should_close = false;
-	ShowWindow(m_window, show_window_command_flags);
+	ShowWindow(m_handle.hwindow, show_window_command_flags);
 }
 
 /*
@@ -296,7 +229,15 @@ LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 
 	case WM_CLOSE:
 	{
-		core::EventHandler::get()->fire_event(core::EventCode::APPLICATION_QUIT, nullptr, {});
+		core::EventHandler::get()->post_event(
+			std::make_unique<core::ApplicationQuitEvent>(
+				core::ApplicationQuitEvent(
+					Platform::get()->get_window_from_hwnd(hWnd)
+				)
+			),
+			true
+		);
+		// core::EventHandler::get()->fire_event(core::EventCode::APPLICATION_QUIT, nullptr, {});
 		window_should_close = true;
 		return true;
 	} break;

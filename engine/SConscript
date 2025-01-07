@@ -10,8 +10,22 @@ engine_env.Append(
 )
 engine_env['LIBS'].extend(['user32.lib'])
 
+source_dirs = [
+    'src/core/',
+    'src/platform/',
+    'src/renderer/',
+    'src/renderer/vulkan/',
+    'src/renderer/dx12/',
+]
+
+sources = Glob('src/*.cc')
+for dir in source_dirs:
+    sources += Glob(f'{dir}*.cc')
+    # print(dir)
+    # print(Glob(f'{dir}*.cc'))
+
 # Source files for the library
-sources = Glob( 'src/core/*.cc' ) + Glob( 'src/platform/*.cc' )
+# sources = Glob( 'src/core/*.cc' ) + Glob( 'src/platform/*.cc' ) + Glob( 'src/renderer/*.cc' )
 
 # Build the library (static or shared)
 lib = engine_env.Library(target='engine', source=sources)

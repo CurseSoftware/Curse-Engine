@@ -71,16 +71,16 @@ void InputHandler::update(f64 delta_time) {
 /// @param w New width of the resizing
 /// @param h New height of the resizing
 void InputHandler::process_window_resize(u32 w, u32 h) {
-    EventData data = {};
+    // EventData data = {};
     
-    data.u32[0] = static_cast<u32>(w);
-    data.u32[1] = static_cast<u32>(h);
+    // data.u32[0] = static_cast<u32>(w);
+    // data.u32[1] = static_cast<u32>(h);
 
-    EventHandler::get()->fire_event(
-        EventCode::RESIZED,
-        nullptr,
-        data
-    );
+    // EventHandler::get()->fire_event(
+    //     EventCode::RESIZED,
+    //     nullptr,
+    //     data
+    // );
 }
 
 // Return a tuple of the current mouse position.
@@ -123,14 +123,14 @@ void InputHandler::process_key(Keys key, bool pressed) {
     if (m_state.keyboard_curr_state.keys[key] != pressed) {
         m_state.keyboard_curr_state.keys[key] = pressed;
 
-        EventData data = {
-            .u16 = static_cast<u16>(key)
-        };
-        EventHandler::get()->fire_event(
-            pressed ? EventCode::KEY_PRESSED : EventCode::KEY_RELEASED,
-            nullptr,
-            data
-        );
+        // EventData data = {
+        //     .u16 = static_cast<u16>(key)
+        // };
+        // EventHandler::get()->fire_event(
+        //     pressed ? EventCode::KEY_PRESSED : EventCode::KEY_RELEASED,
+        //     nullptr,
+        //     data
+        // );
     }
 }
 
@@ -144,23 +144,23 @@ void InputHandler::process_mouse_wheel(i32 z_delta) {
 /// @param x New x coordinate of the mouse
 /// @param y New y coordinate of the mouse
 void InputHandler::process_mouse_move(i32 x, i32 y) {
-    if (m_state.mouse_curr_state.x != x
-        || m_state.mouse_curr_state.y != y
-    ) {
-        m_state.mouse_curr_state.x = x;
-        m_state.mouse_curr_state.y = y;
+    // if (m_state.mouse_curr_state.x != x
+    //     || m_state.mouse_curr_state.y != y
+    // ) {
+    //     m_state.mouse_curr_state.x = x;
+    //     m_state.mouse_curr_state.y = y;
         
-        EventData data = {};
-        data.u16[0] = static_cast<u16>(x);
-        data.u16[1] = static_cast<u16>(y);
+    //     EventData data = {};
+    //     data.u16[0] = static_cast<u16>(x);
+    //     data.u16[1] = static_cast<u16>(y);
 
-        // TODO: fire event
-        EventHandler::get()->fire_event(
-            EventCode::MOUSE_MOVE,
-            nullptr,
-            data
-        );
-    }
+    //     // TODO: fire event
+    //     EventHandler::get()->fire_event(
+    //         EventCode::MOUSE_MOVE,
+    //         nullptr,
+    //         data
+    //     );
+    // }
 }
 
 

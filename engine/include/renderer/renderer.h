@@ -1,9 +1,12 @@
 #pragma once
 #include "core/defines.h"
 #include "core/types.h"
-#include "platform/platform.h"
 
 namespace gravity {
+
+namespace platform {
+    struct WindowHandle;
+}
 namespace renderer {
 
 /// @brief Configuration structure for a Renderer
@@ -12,7 +15,7 @@ struct config {
     u32 height;
     bool vsync;
     bool enable_debug_layer;
-    platform::Window* window_handle;
+    platform::WindowHandle& window_handle;
 };
 
 /// @brief Interface for renderer backends to impliment

@@ -16,8 +16,6 @@ public:
     void end_frame() override;
     void present() override;
 private:
-    platform::Window* _wnd;
-
 
 };
 

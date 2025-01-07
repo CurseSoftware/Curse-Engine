@@ -30,10 +30,10 @@ public:
         return Application::instance;
     }
 
-    static bool on_event(EventCode code, void* sender, void* listener, EventData data);
-    static bool on_key(EventCode code, void* sender, void* listener, EventData data);
-    static bool on_resize(EventCode code, void* sender, void* listener, EventData data);
-    static bool on_mouse_move(EventCode code, void* sender, void* listener, EventData data);
+    // static bool on_event(EventCode code, void* sender, void* listener, EventData data);
+    // static bool on_key(EventCode code, void* sender, void* listener, EventData data);
+    // static bool on_resize(EventCode code, void* sender, void* listener, EventData data);
+    // static bool on_mouse_move(EventCode code, void* sender, void* listener, EventData data);
 
     void run();
 
@@ -47,6 +47,18 @@ private:
         bool is_running { false };
         bool is_suspended { false };
     } state;
+};
+
+class ApplicationQuitEvent : public Event {
+public:
+    ApplicationQuitEvent(const platform::Window& wnd)
+        : Event(EventType::APPLICATION_QUIT)
+        , _window(wnd)
+        {}
+    
+    const platform::Window& source_window() const override { return _window; }
+private:
+    const platform::Window& _window;
 };
 
 } // core namespace
