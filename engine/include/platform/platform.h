@@ -27,6 +27,7 @@ namespace platform {
 struct WindowPacket {
     u32 width;
     u32 height;
+    std::string name;
 #if defined(Q_PLATFORM_WINDOWS)
     HWND hwindow;
     HINSTANCE hinstance;
@@ -173,13 +174,11 @@ public:
     double get_absolute_time();
 
     const Window* get_primary_window() const { 
-        std::printf("got here\n");
         auto w = _windows.find(_primary_window_name);
         if (w == _windows.end()) {
             std::printf("Platform lost primary window\n");
             exit(1);
         }
-        std::printf("got window\n");
         return w->second;
     }
 
@@ -203,28 +202,7 @@ private:
     #endif // Q_PLATFORM_WINDOWS
 };
 
-
 } // platform namespace
-
-// namespace core {
-
-// class WindowResizeEvent : public Event {
-// public:
-//     WindowResizeEvent(const platform::Window& wnd, u32 width, u32 height)
-//         : Event(EventType::WINDOW_RESIZED)
-//         , _window(wnd)
-//         , _width(width)
-//         , _height(height)
-//     {}
-
-//     const platform::Window& source_window() const override { return _window; }
-// private:
-//     const platform::Window& _window;
-//     u32 _width;
-//     u32 _height;
-// };
-// }
-
 } // gravity namespace
 
 namespace std {

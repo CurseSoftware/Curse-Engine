@@ -2,7 +2,8 @@
 #include "core/defines.h"
 #include "core/application.h"
 #include "core/input.h"
-#include "core/events.h"
+#include "core/events/events.h"
+#include "core/events/window_event.h"
 #include "renderer/renderer.h"
 #include "renderer/dx12/renderer.h"
 
@@ -20,7 +21,7 @@ constexpr const char* WINDOW_CLASS_NAME = "BIFROST WINDOW CLASS NAME";
 
 /// @brief Window constructor
 /// @param packet Packet containing information relevant to the window
-Window::Window(const WindowPacket& packet) 
+Window::Window(const WindowPacket& packet)
 	// : m_hinstance(packet.hinstance)
 	// , m_window(packet.hwindow)
 	: m_handle(WindowHandle{
@@ -29,6 +30,7 @@ Window::Window(const WindowPacket& packet)
 	})
 	, m_width(packet.width)
 	, m_height(packet.height)
+	, m_title(packet.name)
 	, m_can_resize(false)
 	, m_is_initialized(true)
 	, m_renderer(new renderer::dx12::DX12_Renderer())
@@ -55,6 +57,7 @@ Window::~Window() {
 /// @brief Move constructor
 /// @param other 
 Window::Window(Window&& other) {
+	std::swap(m_title, other.m_title);
 	std::swap(m_width, other.m_width);
 	std::swap(m_height, other.m_height);
 	// std::swap(m_window, other.m_window);
@@ -161,6 +164,7 @@ Result<Window*, WindowError> Window::create(
 	packet.hwindow = hwindow;
 	packet.width = width;
 	packet.height = height;
+	packet.name = title;
 
 	// m_is_initialized = true;
 	return Ok(new Window(packet));
@@ -224,67 +228,79 @@ bool Window::pump_messages() {
 // Callback function to handle received messages
 LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 	switch (message) {
-	case WM_ERASEBKGND: // notify the OS that erasing the screen will be handled by Application
-		return 1;
+		case WM_ERASEBKGND: // notify the OS that erasing the screen will be handled by Application
+			return 1;
 
-	case WM_CLOSE:
-	{
-		core::EventHandler::get()->post_event(
-			std::make_unique<core::ApplicationQuitEvent>(
-				core::ApplicationQuitEvent(
-					Platform::get()->get_window_from_hwnd(hWnd)
-				)
-			),
-			true
-		);
-		// core::EventHandler::get()->fire_event(core::EventCode::APPLICATION_QUIT, nullptr, {});
-		window_should_close = true;
-		return true;
-	} break;
+		case WM_CLOSE:
+		{
+			core::EventHandler::get()->post_event(
+				std::make_unique<core::ApplicationQuitEvent>(
+					core::ApplicationQuitEvent(
+						Platform::get()->get_window_from_hwnd(hWnd)
+					)
+				),
+				true
+			);
+			// core::EventHandler::get()->fire_event(core::EventCode::APPLICATION_QUIT, nullptr, {});
+			window_should_close = true;
+			return true;
+		} break;
 
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			return 0;
 
-	case WM_SIZE: {
-		RECT r;
-		GetClientRect(hWnd, &r);
-		u32 width = r.right - r.left;
-		u32 height = r.bottom - r.top;
+		case WM_SIZE: {
+			RECT r;
+			GetClientRect(hWnd, &r);
+			u32 width = r.right - r.left;
+			u32 height = r.bottom - r.top;
 
-		core::InputHandler::get()->process_window_resize(
-			width,
-			height
-		);
-	} break;
+			core::InputHandler::get()->process_window_resize(
+				width,
+				height
+			);
+		} break;
 
-	case WM_KEYDOWN:
-	case WM_KEYUP:
-	case WM_SYSKEYDOWN:
-	case WM_SYSKEYUP: {
-		bool pressed = (message == WM_KEYDOWN || message == WM_SYSKEYDOWN);
-		Keys key = static_cast<Keys>(wParam);
+		case WM_KEYDOWN:
+		case WM_KEYUP:
+		case WM_SYSKEYDOWN:
+		case WM_SYSKEYUP: {
+			bool pressed = (message == WM_KEYDOWN || message == WM_SYSKEYDOWN);
+			Keys key = static_cast<Keys>(wParam);
 
-		// Pass the input subsystem
-		core::InputHandler::get()->process_key(key, pressed);
-	} break;
+			// Pass the input subsystem
+			core::InputHandler::get()->process_key(key, pressed);
+		} break;
 
-	case WM_MOUSEMOVE:
-		// Fire an event for mouse movement
+		case WM_MOUSEMOVE:
+			// Fire an event for mouse movement
 
-		break;
-	case WM_MOUSEWHEEL:
-		// Fire an event for mouse movement
-		break;
+			break;
+		case WM_MOUSEWHEEL:
+			// Fire an event for mouse movement
+			break;
 
-	case WM_LBUTTONUP:
-	case WM_LBUTTONDOWN:
-	case WM_RBUTTONUP:
-	case WM_RBUTTONDOWN:
-	case WM_MBUTTONUP:
-	case WM_MBUTTONDOWN: {
-		// TODO: fire events for mouse buttons
-	} break;
+		case WM_LBUTTONUP:
+		case WM_LBUTTONDOWN:
+		case WM_RBUTTONUP:
+		case WM_RBUTTONDOWN:
+		case WM_MBUTTONUP:
+		case WM_MBUTTONDOWN: {
+			// TODO: fire events for mouse buttons
+		} break;
+
+		case WM_SETFOCUS: {
+
+			std::cout << "gained focused\n";
+		} break;
+		case WM_KILLFOCUS: {
+			std::cout << "lost focused\n";
+		} break;
+
+		default: 
+			break;
+
 	}
 
 	return DefWindowProc(hWnd, message, wParam, lParam);

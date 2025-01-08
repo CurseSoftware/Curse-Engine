@@ -1,6 +1,7 @@
 #include "core/logger.h"
 #include "platform/platform.h"
 #include "core/defines.h"
+#include "core/input.h"
 #include "renderer/dx12/renderer.h"
 
 #ifdef Q_PLATFORM_WINDOWS
@@ -117,15 +118,8 @@ void Platform::startup(const std::string& name, u32 width, u32 height) {
     Platform::instance->_windows[name] = Window::create(width, height, name).unwrap();
     // Platform::instance->_windows[name] = std::make_unique<Window>(Window::create(width, height, name).unwrap());
     Platform::instance->_windows[name]->show();
-
+    core::InputHandler::get()->register_window(Platform::instance->_windows[name]);
     std::vector<std::string> keys;
-    for (const auto& pair : Platform::instance->_windows) {
-        keys.push_back(pair.first);
-    }
-    for (const auto& key : keys) {
-        std::cout << "WINDOWKEY: " << key << "\n";
-    }
-
     
     core::logger::Logger::get()->debug("Startup platform <Win32> successful.");
 }

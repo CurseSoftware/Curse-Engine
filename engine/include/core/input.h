@@ -2,7 +2,7 @@
 #include "types.h"
 #include "keys.h"
 #include "mouse_buttons.h"
-#include "events.h"
+#include "events/events.h"
 #include <tuple>
 #include "logger.h"
 
@@ -22,8 +22,24 @@ struct KeyboardState {
 
 // State of the mouse
 struct MouseState {
-    i32 x, y;
+    f32 x = 0.f,
+        y = 0.f,
+        x_prev = 0.f,
+        y_prev = 0.f;
     bool buttons[MouseButtons::MAX_BUTTONS] = { false };
+    f32 x_scroll = 0,
+        y_scroll = 0;
+};
+
+struct WindowInputState {
+    KeyboardState keyboard_curr_state;
+    KeyboardState keyboard_prev_state;
+    MouseState mouse_curr_state;
+    MouseState mouse_prev_state;
+    
+    bool in_focus { false };
+
+    platform::Window* window { nullptr };
 };
 
 // The state for the input handler
@@ -48,11 +64,13 @@ public:
 
     void update(f64 delta_time);
     void process_key(Keys key, bool pressed);
-    void process_buttons(MouseButtons button, bool pressed);
+    void process_buttons(MouseButtons button, bool pressed, platform::Window* wnd);
     void process_mouse_move(i32 x, i32 y);
     void process_mouse_wheel(i32 z_delta);
     std::tuple<i32, i32> get_mouse_position();
     void process_window_resize(u32 width, u32 height);
+    void register_window(platform::Window* wnd);
+    void set_focused_window(platform::Window* wnd);
 private:
     bool _is_button_down(MouseButtons button);
     bool _is_button_up(MouseButtons button);
@@ -68,6 +86,13 @@ private:
     static InputHandler* handler_instance;
 protected:
     InputHandler();
+
+    std::unordered_map<platform::Window*, WindowInputState> _window_states;
+    /// @brief Window that is currently in focus
+    platform::Window* _focused_window { nullptr };
+
+    /// @brief Window that is being hovered over 
+    platform::Window* _hovered_window { nullptr };
 };
 
 class KeyPressedEvent : public Event {
@@ -79,6 +104,7 @@ public:
     {}
 
     const platform::Window& source_window() const override { return _window; }
+    Keys key() const { return _key; }
 private:
     const platform::Window& _window;
     Keys _key;
@@ -93,9 +119,34 @@ public:
     {}
 
     const platform::Window& source_window() const override { return _window; }
+    Keys key() const { return _key; }
 private:
     const platform::Window& _window;
     Keys _key;
+};
+
+class WindowFocusGainedEvent : public Event {
+public:
+    WindowFocusGainedEvent(const platform::Window& wnd)
+        : Event(EventType::KEY_PRESSED)
+        , _window(wnd)
+    {}
+
+    const platform::Window& source_window() const override { return _window; }
+private:
+    const platform::Window& _window;
+};
+
+class WindowFocusLostEvent : public Event {
+public:
+    WindowFocusLostEvent(const platform::Window& wnd)
+        : Event(EventType::KEY_PRESSED)
+        , _window(wnd)
+    {}
+
+    const platform::Window& source_window() const override { return _window; }
+private:
+    const platform::Window& _window;
 };
 
 } // core namespace

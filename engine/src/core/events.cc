@@ -1,4 +1,4 @@
-#include "core/events.h"
+#include "core/events/events.h"
 #include "core/defines.h"
 #include "core/logger.h"
 
@@ -8,113 +8,120 @@ namespace core {
 
 EventHandler* EventHandler::instance = nullptr;
 
-// EventHandler* EventHandler::handler_instance = nullptr;
+/// @brief Register a function to execute when an event for a window was triggered
+/// @param window The window that we want to register this function to
+/// @param type The type of event
+/// @param callback The function to execute and register
+/// @param handler_name The name of the handler
+/// @param priority The priority we want this function to hold
+void EventHandler::register_callback(
+    const platform::Window* window,
+    EventType type,
+    EventCallback callback,
+    const std::string& handler_name,
+    EventPriority priority
+) {
+    CallbackData data {
+        .callback = callback,
+        .handler_name = handler_name,
+        .priority = priority,
+        .order_with_priority = static_cast<u32>(_callbacks[window][type].size()),
+    };
 
-// /// @brief Startup behavior for the event subsystem
-// /// @return true if successful false otherwise
-// bool EventHandler::startup() {
-//     if (handler_instance == nullptr) {
-//         handler_instance = new EventHandler();
-//     } else {
-//         logger::Logger::get()->error("Attempting to startup event subsystem that has already been initialized");
-//         return false;
-//     }
+    _callbacks[window][type].push_back(data);
+    std::sort(_callbacks[window][type].begin(), _callbacks[window][type].begin());
+}
 
-//     return true;
-// }
+/// @brief Post an event
+/// @param event The event
+/// @param immediate Whether this should execute immediately
+void EventHandler::post_event(std::unique_ptr<Event> event, bool immediate) {
+    _events.push(std::move(event));
+}
 
-// bool EventHandler::shutdown() {
-//     if (handler_instance == nullptr) {
-//         logger::Logger::get()->warn("Attempting shutdown of event subsystem that is not initialized.");
-//     }
+/// @brief Poll all outstanding events and handle them
+void EventHandler::poll_events() {
+    std::vector<std::unique_ptr<Event>> current_events;
 
-//     for (usize i = 0; i < EVENT_CODE_AMOUNT; i++) {
-//         handler_instance->_registry[i] = {};
-//     }
+    while (!_events.empty()) {
+        current_events.push_back(std::move(_events.front()));
+        _events.pop();
+    }
 
-//     delete handler_instance;
-//     handler_instance = nullptr;
-//     return true;
-// }
+    std::sort(current_events.begin(), current_events.end(), 
+        [](const auto& a, const auto& b) {
+            return a->priority() < b->priority();
+        }
+    );
 
-// /// @brief Get a pointer reference to the instance of the event subsystem
-// EventHandler* EventHandler::get() {
-//     if (handler_instance == nullptr) {
-//         logger::Logger::get()->fatal("Cannot retrieve reference to uninitialized EventHandler.");
-//         exit(1);
-//         return nullptr;
-//     }
+    for (auto& ev : current_events) {
+        _process_event(*ev);
+    }
+}
 
-//     return handler_instance;
-// }
+/// @brief Startup behavior for event system
+/// @return True if successful. False otherwise
+bool EventHandler::startup() {
+    if (instance != nullptr) {
+        // logger::Logger::get()->error("Attempting startup for Event system after initialization.");
+        return false;
+    }
 
-// bool EventHandler::register_event(EventCode code, void* listener, event_callback callback) {
-//     usize n_registered = get()->_registry[code_as_usize(code)].registered_events.size();
-//     for (usize i = 0; i < n_registered; i++) {
-//         if (
-//             get()->_registry[code_as_usize(code)].registered_events[i].listener == listener
-//         ) {
-//             return false;
-//         }
-//     }
-    
-//     RegisteredEvent ev = {
-//         .listener = listener,
-//         .callback = callback
-//     };
+    instance = new EventHandler();
+}
 
-//     get()->_registry[code_as_usize(code)].registered_events.push_back(ev);
-//     return true;
-// }
+/// @brief Get pointer to event system
+/// @return const pointer reference to event handler
+EventHandler* EventHandler::get() {
+    if (instance == nullptr) {
+        // logger::Logger::get()->fatal("Attempting to get reference to uninitialized EventHandler system");
+        exit(1);
+    }
 
-// /// @brief Unregister a listener for an event
-// /// @param code Event Code to unregister the listener from
-// /// @param listener The listener we want to unregister
-// /// @return true if successful. False otherwise (typically that listener is not registered for that event)
-// bool EventHandler::unregister_event(EventCode code, void* listener) {
-//     if (get()->_registry[code_as_usize(code)].registered_events.size() == 0) {
-//         return false;
-//     }
+    return instance;
+}
 
-//     usize n_registered = get()->_registry[code_as_usize(code)].registered_events.size();
-//     for (usize i = 0; i < n_registered; i++) {
-//         const RegisteredEvent& ev = get()->_registry[code_as_usize(code)].registered_events[i];
-//         if (ev.listener == listener) {
-//             get()->_registry[code_as_usize(code)].registered_events
-//                 .erase(get()->_registry[code_as_usize(code)].registered_events.begin() + i);
-//             return true;
-//         }
-//     }
+/// @brief Shutdown behavior for event system
+void EventHandler::shutdown() {
+    if (instance == nullptr) {
+        // logger::Logger::get()->fatal("Attempting to shutdown uninitialized EventHandler system");
+        exit(1);
+    }
 
-//     logger::Logger::get()->warn("Attempted to unregister listener for event that it is not registered for");
-//     return false;
-// }
+    delete instance;
+    instance = nullptr;
+}
 
-// /// @brief Fire an event for the desired code
-// /// @param code The code for the event we are firing
-// /// @param sender The sender of the event being fired
-// /// @param data The data we are sending along with the event
-// /// @return true if the event is handled. false otherwise
-// bool EventHandler::fire_event(EventCode code, void* sender, EventData data) {
-//     usize cv = code_as_usize(code);
+/// @brief Process an individual event
+/// @param ev Event to process
+void EventHandler::_process_event(Event& ev) {
+    auto& source_window = ev.source_window();
+    _process_window_event(ev, &source_window);
 
-//     if (get()->_registry[cv].registered_events.size() == 0) {
-//         logger::Logger::get()->warn("Attempting to fire event with no listeners");
-//         return false;
-//     }
+    if (ev.propogation().propogate) {
+        _process_window_event(ev, nullptr);
+    }
+}
 
-//     usize n_registered = get()->_registry[cv].registered_events.size();
-//     for (usize i = 0; i < n_registered; i++) {
-//         const RegisteredEvent& ev = get()->_registry[code_as_usize(code)].registered_events[i];
-//         // auto func = ev.callback;
-//         if (ev.callback(code, sender, ev.listener, data)) {
-//             return true;
-//         }
-//     }
+/// @brief Process an event for a given window
+/// @param ev Event to process
+/// @param window Window to process
+void EventHandler::_process_window_event(Event& ev, const platform::Window* window) {
+    auto wnd_it = _callbacks.find(window);
+    if (wnd_it == _callbacks.end()) {
+        return;
+    }
 
-//     logger::Logger::get()->warn("Fired event left unhandled.");
-//     return false;
-// }
+    auto type_it = wnd_it->second.find(ev.type());
+    if (type_it == wnd_it->second.end()) {
+        return;
+    }
+
+    for (auto& callback_data : type_it->second) {
+        EventContext context;
+        callback_data.callback(ev, context);
+    }
+}
 
 } // core namespace
 } // gravity namespace

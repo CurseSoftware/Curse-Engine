@@ -1,6 +1,6 @@
 #include <iostream>
 #include "core/application.h"
-#include "core/events.h"
+#include "core/events/events.h"
 
 namespace gravity {
 
@@ -24,13 +24,29 @@ Application* Application::startup(const std::string& name, u32 width, u32 height
 
     platform::Platform::startup(name, width, height);
 
-    std::printf("HERE\n");
     EventHandler::get()->register_callback(
         platform::Platform::get()->get_primary_window(),
         EventType::APPLICATION_QUIT,
         [](Event& event, EventContext& context) {
             logger::Logger::get()->trace("APPLICATION QUIT CALLBACK");
             Application::get()->state.is_running = false;
+            return true;
+        },
+        "application",
+        EventPriority::HIGH
+    );
+    EventHandler::get()->register_callback(
+        platform::Platform::get()->get_primary_window(),
+        EventType::KEY_PRESSED,
+        [](Event& event, EventContext& context) {
+            switch (event.type()) {
+                case EventType::KEY_PRESSED: {
+                    auto& keypress_event = dynamic_cast<KeyPressedEvent&>(event);
+                    logger::Logger::get()->debug("KEYPRESS: '%s'", keypress_event.key());
+                } break;
+                default: 
+                    break;
+            }
             return true;
         },
         "application",

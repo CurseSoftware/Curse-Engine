@@ -5,7 +5,7 @@
 #include "types.h"
 #include "input.h"
 #include "platform/platform.h"
-#include "events.h"
+#include "events/events.h"
 #include "renderer/renderer.h"
 
 #include <map>

@@ -1,6 +1,9 @@
 #include "core/input.h"
 #include "core/mouse_buttons.h"
-#include "core/events.h"
+#include "core/events/events.h"
+#include "core/events/window_event.h"
+
+#include <memory>
 
 namespace gravity {
 namespace core {
@@ -67,10 +70,21 @@ void InputHandler::update(f64 delta_time) {
     m_state.mouse_prev_state = m_state.mouse_curr_state;
 }
 
+/// @brief Register a new window to receive input events
+/// @param wnd 
+void InputHandler::register_window(platform::Window* wnd) {
+    Logger::get()->debug("Window '%s' registered to receive inputs.", wnd->title().c_str());
+    auto& state = _window_states[wnd];
+    state.window = wnd;
+}
+
 /// @brief Process the input of resizing the application window
 /// @param w New width of the resizing
 /// @param h New height of the resizing
 void InputHandler::process_window_resize(u32 w, u32 h) {
+    // EventHandler::get()->post_event(
+    //     WindowResizeEvent()
+    // )
     // EventData data = {};
     
     // data.u32[0] = static_cast<u32>(w);
@@ -93,44 +107,91 @@ std::tuple<i32, i32> InputHandler::get_mouse_position() {
     return std::make_tuple(m_state.mouse_curr_state.x, m_state.mouse_curr_state.y);
 }
 
+/// @brief Set the window that is currently in focus
+/// @param wnd Pointer to the window that is in focus. nullptr if no windows are in focus
+void InputHandler::set_focused_window(platform::Window* wnd) {
+    if (_focused_window) {
+        _window_states[_focused_window].in_focus = false;
+        EventHandler::get()->post_event(
+            std::make_unique<WindowFocusLostEvent>(
+                WindowFocusLostEvent(*_focused_window)
+            ),
+            true
+        );
+    }
+
+    _focused_window = wnd;
+
+    if (wnd) {
+        _window_states[wnd].in_focus = true;
+        EventHandler::get()->post_event(
+            std::make_unique<WindowFocusGainedEvent>(
+                WindowFocusGainedEvent(*wnd)
+            ),
+            true
+        );
+    }
+}
+
 /// @brief Handle the input of a key being pressed or released
 /// @param key The keycode of the key that was input
 /// @param pressed True if the key is pressed. False if released.
 void InputHandler::process_key(Keys key, bool pressed) {
-    switch (key) {
-        case Keys::KEY_LALT: 
-            logger::Logger::get()->debug("LALT");
-            break;
-        case Keys::KEY_RALT: 
-            logger::Logger::get()->debug("RALT");
-            break;
-        case Keys::KEY_LCONTROL: 
-            logger::Logger::get()->debug("LCONTROL");
-            break;
-        case Keys::KEY_RCONTROL: 
-            logger::Logger::get()->debug("RCONTROL");
-            break;
-        case Keys::KEY_LSHIFT: 
-            logger::Logger::get()->debug("LSHIFT");
-            break;
-        case Keys::KEY_RSHIFT: 
-            logger::Logger::get()->debug("RSHIFT");
-            break;
-        default: 
-            break;
-    }
-    
-    if (m_state.keyboard_curr_state.keys[key] != pressed) {
-        m_state.keyboard_curr_state.keys[key] = pressed;
+    if (_focused_window) {
+        auto& state = _window_states[_focused_window];
+        switch (key) {
+            case Keys::KEY_LALT: 
+                logger::Logger::get()->debug("LALT");
+                break;
+            case Keys::KEY_RALT: 
+                logger::Logger::get()->debug("RALT");
+                break;
+            case Keys::KEY_LCONTROL: 
+                logger::Logger::get()->debug("LCONTROL");
+                break;
+            case Keys::KEY_RCONTROL: 
+                logger::Logger::get()->debug("RCONTROL");
+                break;
+            case Keys::KEY_LSHIFT: 
+                logger::Logger::get()->debug("LSHIFT");
+                break;
+            case Keys::KEY_RSHIFT: 
+                logger::Logger::get()->debug("RSHIFT");
+                break;
+            default: 
+                break;
+        }
+        
+        if (state.keyboard_curr_state.keys[key] != pressed) {
+            state.keyboard_curr_state.keys[key] = pressed;
 
-        // EventData data = {
-        //     .u16 = static_cast<u16>(key)
-        // };
-        // EventHandler::get()->fire_event(
-        //     pressed ? EventCode::KEY_PRESSED : EventCode::KEY_RELEASED,
-        //     nullptr,
-        //     data
-        // );
+            if (pressed) {
+                EventHandler::get()->post_event(
+                    std::make_unique<KeyPressedEvent>(
+                        *_focused_window,
+                        key
+                    ),
+                    false
+                );
+            } else {
+                EventHandler::get()->post_event(
+                    std::make_unique<KeyReleasedEvent>(
+                        *_focused_window,
+                        key
+                    ),
+                    false
+                );
+            }
+
+            // EventData data = {
+            //     .u16 = static_cast<u16>(key)
+            // };
+            // EventHandler::get()->fire_event(
+            //     pressed ? EventCode::KEY_PRESSED : EventCode::KEY_RELEASED,
+            //     nullptr,
+            //     data
+            // );
+        }
     }
 }
 
