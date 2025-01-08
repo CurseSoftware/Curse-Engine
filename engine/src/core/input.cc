@@ -103,7 +103,7 @@ void InputHandler::process_window_resize(u32 w, u32 h) {
 
 /// @brief Get the current mouse position
 /// @return A tuple of the mouse position as <x, y>
-std::tuple<i32, i32> InputHandler::get_mouse_position() {
+std::tuple<f32, f32> InputHandler::get_mouse_position() {
     return std::make_tuple(m_state.mouse_curr_state.x, m_state.mouse_curr_state.y);
 }
 
@@ -179,7 +179,7 @@ void InputHandler::process_key(Keys key, bool pressed) {
                         *_focused_window,
                         key
                     ),
-                    false
+                   false
                 );
             }
 

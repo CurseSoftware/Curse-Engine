@@ -16,41 +16,30 @@ Application* Application::startup(const std::string& name, u32 width, u32 height
     InputHandler::startup();
     EventHandler::startup();
 
-    // EventHandler::get()->register_event(EventCode::APPLICATION_QUIT, nullptr, Application::on_event);
-    // EventHandler::get()->register_event(EventCode::KEY_PRESSED, nullptr, Application::on_key);
-    // EventHandler::get()->register_event(EventCode::KEY_RELEASED, nullptr, Application::on_key);
-    // EventHandler::get()->register_event(EventCode::MOUSE_MOVE, nullptr, Application::on_mouse_move);
-    // EventHandler::get()->register_event(EventCode::RESIZED, nullptr, Application::on_resize);
-
     platform::Platform::startup(name, width, height);
 
     EventHandler::get()->register_callback(
         platform::Platform::get()->get_primary_window(),
         EventType::APPLICATION_QUIT,
-        [](Event& event, EventContext& context) {
-            logger::Logger::get()->trace("APPLICATION QUIT CALLBACK");
-            Application::get()->state.is_running = false;
-            return true;
-        },
+        Application::on_event,
         "application",
         EventPriority::HIGH
     );
+    
     EventHandler::get()->register_callback(
         platform::Platform::get()->get_primary_window(),
         EventType::KEY_PRESSED,
-        [](Event& event, EventContext& context) {
-            switch (event.type()) {
-                case EventType::KEY_PRESSED: {
-                    auto& keypress_event = dynamic_cast<KeyPressedEvent&>(event);
-                    logger::Logger::get()->debug("KEYPRESS: '%s'", keypress_event.key());
-                } break;
-                default: 
-                    break;
-            }
-            return true;
-        },
+        Application::on_key,
         "application",
-        EventPriority::HIGH
+        EventPriority::NORMAL
+    );
+    
+    EventHandler::get()->register_callback(
+        platform::Platform::get()->get_primary_window(),
+        EventType::KEY_RELEASED,
+        Application::on_key,
+        "application",
+        EventPriority::NORMAL
     );
 
     logger::Logger::get()->debug("Application created.");
@@ -90,6 +79,54 @@ void Application::run() {
 
 /// @brief Application constructor
 Application::Application() noexcept {}
+
+/// @brief Standard event handler for the application
+/// @param event Incoming event to handle
+/// @param context relevent context for event handling
+/// @return true if handled false otherwise
+bool Application::on_event(Event& event, EventContext& context) {
+    switch (event.type()) {
+        case EventType::APPLICATION_QUIT: {
+            logger::Logger::get()->trace("APPLICATION QUIT CALLBACK");
+            Application::get()->state.is_running = false;
+            return true;
+        } break;
+        default:
+            break;
+    }
+    return false;
+}
+
+/// @brief Standard event handler for the application
+/// @param event Incoming event to handle
+/// @param context relevent context for event handling
+/// @return true if handled false otherwise
+bool Application::on_key(Event& event, EventContext& context) {
+    switch (event.type()) {
+        case EventType::KEY_PRESSED: {
+            KeyPressedEvent& key_event = dynamic_cast<KeyPressedEvent&>(event);
+            Keys key = key_event.key();
+            
+            if (key == Keys::KEY_ESCAPE) {
+                logger::Logger::get()->debug("ESCAPE KEY HIT QUITTING NOW");
+                Application::get()->state.is_running = false;
+                return true;
+            }
+
+            logger::Logger::get()->debug("KEY '%c' PRESSED", key);
+            return true;
+        } break;
+        
+        case EventType::KEY_RELEASED: {
+            KeyReleasedEvent& key_event = dynamic_cast<KeyReleasedEvent&>(event);
+            logger::Logger::get()->debug("KEY '%c' RELEASED", key_event.key());
+            return true;
+        } break;
+        default:
+            break;
+    }
+    return false;
+}
 
 // /// @brief Callback function to handle events
 // /// @param code Event Code

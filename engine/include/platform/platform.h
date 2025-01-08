@@ -183,7 +183,7 @@ public:
     }
 
     #if defined(Q_PLATFORM_WINDOWS)
-    const Window& get_window_from_hwnd(HWND hwnd);
+    Window* get_window_from_hwnd(HWND hwnd);
     #endif
 private:
     Platform() {}

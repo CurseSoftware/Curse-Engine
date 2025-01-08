@@ -95,6 +95,7 @@ void EventHandler::shutdown() {
 /// @brief Process an individual event
 /// @param ev Event to process
 void EventHandler::_process_event(Event& ev) {
+    // auto& source_window = ev->source_window();
     auto& source_window = ev.source_window();
     _process_window_event(ev, &source_window);
 

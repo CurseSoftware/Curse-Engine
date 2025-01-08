@@ -30,6 +30,8 @@ public:
         return Application::instance;
     }
 
+    static bool on_event(Event& event, EventContext& context);
+    static bool on_key(Event& event, EventContext& context);
     // static bool on_event(EventCode code, void* sender, void* listener, EventData data);
     // static bool on_key(EventCode code, void* sender, void* listener, EventData data);
     // static bool on_resize(EventCode code, void* sender, void* listener, EventData data);

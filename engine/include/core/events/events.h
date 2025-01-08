@@ -22,6 +22,7 @@ enum class EventType {
     WINDOW_CLOSED,
     WINDOW_RESIZED,
     WINDOW_FOCUSED,
+    WINDOW_UNFOCUSED,
     KEY_PRESSED,
     KEY_RELEASED,
     MOUSE_MOVE,
@@ -70,6 +71,7 @@ protected:
 struct EventContext {
 };
 
+// using EventCallback = std::function<bool(Event*, EventContext&)>;
 using EventCallback = std::function<bool(Event&, EventContext&)>;
 
 struct CallbackData {

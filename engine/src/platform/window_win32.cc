@@ -236,7 +236,7 @@ LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 			core::EventHandler::get()->post_event(
 				std::make_unique<core::ApplicationQuitEvent>(
 					core::ApplicationQuitEvent(
-						Platform::get()->get_window_from_hwnd(hWnd)
+						*Platform::get()->get_window_from_hwnd(hWnd)
 					)
 				),
 				true
@@ -291,7 +291,9 @@ LRESULT CALLBACK Window::WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPAR
 		} break;
 
 		case WM_SETFOCUS: {
-
+			core::InputHandler::get()->set_focused_window(
+				Platform::get()->get_window_from_hwnd(hWnd)
+			);
 			std::cout << "gained focused\n";
 		} break;
 		case WM_KILLFOCUS: {

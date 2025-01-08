@@ -67,7 +67,7 @@ public:
     void process_buttons(MouseButtons button, bool pressed, platform::Window* wnd);
     void process_mouse_move(i32 x, i32 y);
     void process_mouse_wheel(i32 z_delta);
-    std::tuple<i32, i32> get_mouse_position();
+    std::tuple<f32, f32> get_mouse_position();
     void process_window_resize(u32 width, u32 height);
     void register_window(platform::Window* wnd);
     void set_focused_window(platform::Window* wnd);
@@ -128,7 +128,7 @@ private:
 class WindowFocusGainedEvent : public Event {
 public:
     WindowFocusGainedEvent(const platform::Window& wnd)
-        : Event(EventType::KEY_PRESSED)
+        : Event(EventType::WINDOW_FOCUSED)
         , _window(wnd)
     {}
 
@@ -140,7 +140,7 @@ private:
 class WindowFocusLostEvent : public Event {
 public:
     WindowFocusLostEvent(const platform::Window& wnd)
-        : Event(EventType::KEY_PRESSED)
+        : Event(EventType::WINDOW_UNFOCUSED)
         , _window(wnd)
     {}
 

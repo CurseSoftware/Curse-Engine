@@ -117,8 +117,8 @@ void Platform::startup(const std::string& name, u32 width, u32 height) {
     Platform::instance->_primary_window_name = name;
     Platform::instance->_windows[name] = Window::create(width, height, name).unwrap();
     // Platform::instance->_windows[name] = std::make_unique<Window>(Window::create(width, height, name).unwrap());
-    Platform::instance->_windows[name]->show();
     core::InputHandler::get()->register_window(Platform::instance->_windows[name]);
+    Platform::instance->_windows[name]->show();
     std::vector<std::string> keys;
     
     core::logger::Logger::get()->debug("Startup platform <Win32> successful.");
@@ -144,10 +144,10 @@ void Platform::shutdown() {
 /// @brief Find window from the hwnd handle
 /// @param hwnd handle to find by
 /// @return constant reference to the window
-const Window& Platform::get_window_from_hwnd(HWND hwnd) {
+Window* Platform::get_window_from_hwnd(HWND hwnd) {
     for (auto it = _windows.begin(); it != _windows.end(); it++) {
         if (it->second->get_handle().hwindow == hwnd) {
-            return *it->second;
+            return it->second;
         }
     }
 
