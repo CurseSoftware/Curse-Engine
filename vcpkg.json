@@ -1,0 +1,10 @@
+{
+  "name": "my-directx-project",
+  "version": "1.0.0",
+  "description": "A project using DirectX libraries via vcpkg.",
+  "dependencies": [
+    "directxtk",
+    "directx-headers"
+  ],
+  "builtin-baseline": "6f1ddd6b6878e7e66fcc35c65ba1d8feec2e01f8"
+}

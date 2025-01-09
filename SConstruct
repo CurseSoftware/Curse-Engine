@@ -5,7 +5,6 @@ def run_executable(target, source, env):
     program = str(source[0])  # The built executable
     subprocess.run([program])  # Run the program
 
-
 # Read the build mode from the command line (default to 'release')
 mode = ARGUMENTS.get('mode', 'release')
 run_target = ARGUMENTS.get('run', None)
@@ -26,22 +25,127 @@ if mode == 'debug':
 else:
     env = release_env
 
+def get_win32_sdk_path():
+    if env['PLATFORM'] != 'win32':
+        return
+    
+    import subprocess
+    try:
+        # Use 'reg query' to find the Windows SDK installation directory
+        result = subprocess.check_output(
+            'reg query "HKLM\\SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots" /v KitsRoot10',
+            shell=True, text=True
+        )
+        for line in result.splitlines():
+            if "KitsRoot10" in line:
+                return line.split()[-1]  # The path is the last element
+    except Exception as e:
+        print(f"Error detecting Windows SDK path: {e}")
+    return None
+
 
 # env.Append(ENV={'PATH': os.environ['PATH']}) 
 # Platorm Compiler Flags 
 if env['PLATFORM'] == 'win32':
+    import winreg
+    import urllib.request
+
+    # def ensure_directx_headers():
+    #     try:
+    #         # Check if vcpkg is in PATH or in standard installation directory
+    #         vcpkg_path = None
+    #         if os.system('vcpkg --version') == 0:
+    #             vcpkg_path = 'vcpkg'
+    #         else:
+    #             # Check common vcpkg installation paths
+    #             possible_paths = [
+    #                 os.path.join(os.getenv('USERPROFILE'), 'vcpkg', 'vcpkg.exe'),
+    #                 'C:\\vcpkg\\vcpkg.exe',
+    #                 os.path.join(os.getenv('VCPKG_ROOT', ''), 'vcpkg.exe')
+    #             ]
+    #             for path in possible_paths:
+    #                 if os.path.exists(path):
+    #                     vcpkg_path = path
+    #                     break
+            
+    #         if not vcpkg_path:
+    #             print("vcpkg not found. Please install vcpkg first:")
+    #             print("1. Clone vcpkg: git clone https://github.com/Microsoft/vcpkg.git")
+    #             print("2. Run: .\\vcpkg\\bootstrap-vcpkg.bat")
+    #             print("3. Add vcpkg root to PATH or set VCPKG_ROOT environment variable")
+    #             return False
+                
+    #         # Install DirectX-Headers package
+    #         print("Installing DirectX-Headers via vcpkg...")
+    #         subprocess.check_call([vcpkg_path, 'install', '--triplet', 'x64-windows'])
+    #         # subprocess.check_call([vcpkg_path, 'install', 'directxtk:x64-windows'])
+    #         # subprocess.check_call([vcpkg_path, 'install', 'directx-headers:x64-windows'])
+    #         return True
+            
+    #     except subprocess.CalledProcessError as e:
+    #         print(f"Failed to install DirectX-Headers: {e}")
+    #         return False
+
+    def detect_windows_sdk_path():
+        """Detect the latest Windows SDK installation path."""
+        try:
+            # Open the Windows SDK registry key
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                            r"SOFTWARE\WOW6432Node\Microsoft\Microsoft SDKs\Windows\v10.0",
+                            0, winreg.KEY_READ) as key:
+                
+                # Get the installation folder
+                install_dir = winreg.QueryValueEx(key, "InstallationFolder")[0]
+                
+                # Get the latest SDK version
+                with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
+                                r"SOFTWARE\WOW6432Node\Microsoft\Microsoft SDKs\Windows\v10.0",
+                                0, winreg.KEY_READ) as version_key:
+                    sdk_version = winreg.QueryValueEx(version_key, "ProductVersion")[0]
+                    
+                # Construct paths for DirectX 12
+                include_path = os.path.join(install_dir, 'Include', sdk_version + '.0')
+                lib_path = os.path.join(install_dir, 'Lib', sdk_version + '.0')
+                
+                return {
+                    'SDK_PATH': install_dir,
+                    'SDK_VERSION': sdk_version,
+                    'INCLUDE_PATH': include_path,
+                    'LIB_PATH': lib_path
+                }
+        except WindowsError:
+            print("Could not detect Windows SDK. Please ensure it's installed.")
+            return None
+
+    # if not ensure_directx_headers():
+    #     print("Failed to set up DirectX Headers. Build may fail.")
+    windows_sdk_path = detect_windows_sdk_path()
+
     # env.Append(tools=['msvc'])
     env.Append(CCFLAGS=['/EHsc'])
     env.Append(CXXFLAGS=['/std:c++20'])  # For C++20
     env.Append(LIBS=['user32'])
-    # env.Append(LIBS=[
-    #     'user32.lib',   # For message translation, window handling
-    #     # 'kernel32.lib'  # For core Windows system services
-    # ])
-    # env.Append(LINKCOMSTR='Linking $TARGET: $LIBS')
-    # env.Append(LIBPATH=[
-    #     'C:/Program Files (x86)/Windows Kits/10/Lib/10.0.22000.0/um/x64'  # Adjust path for your SDK version and architecture
-    # ])
+
+    if windows_sdk_path:
+        vcpkg_install_path = 'vcpkg_installed'
+        # vcpkg_root = os.getenv('VCPKG_ROOT', 'C:\\vcpkg')
+        env.Append(CPPPATH=[
+            # os.path.join(os.getcwd(), vcpkg_install_path, 'x64-windows', 'include'),
+            os.path.join(windows_sdk_path['INCLUDE_PATH'], 'um'),
+            os.path.join(windows_sdk_path['INCLUDE_PATH'], 'shared'),
+        ])
+
+        env.Append(LIBPATH=[
+            os.path.join(vcpkg_install_path, 'x64-windows', 'lib'),  
+            os.path.join(windows_sdk_path['LIB_PATH'], 'um', 'x64')
+        ])
+
+        env['LIBS'].extend([
+            'd3d12', 
+            'd3dcompiler',
+            'dxgi'
+        ])
+
 else:
     env.Append(CXXFLAGS='-std=c++20')  # For C++20
 

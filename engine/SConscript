@@ -3,8 +3,9 @@ Import('env')  # Import the environment from SConstruct
 
 # Add include paths
 engine_env = env.Clone()
+engine_env['CPPPATH'].extend(['include', 'src', 'external'])
 engine_env.Append(
-    CPPPATH=['include', 'src'],
+    # CPPPATH=['include', 'src'],
     CPPDEFINES=['QEXPORT'],
     # LIBS=['user32']
 )
