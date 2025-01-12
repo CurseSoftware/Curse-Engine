@@ -1,5 +1,6 @@
 import subprocess
 import os
+from pathlib import Path
 
 def run_executable(target, source, env):
     program = str(source[0])  # The built executable
@@ -50,41 +51,55 @@ if env['PLATFORM'] == 'win32':
     import winreg
     import urllib.request
 
-    # def ensure_directx_headers():
-    #     try:
-    #         # Check if vcpkg is in PATH or in standard installation directory
-    #         vcpkg_path = None
-    #         if os.system('vcpkg --version') == 0:
-    #             vcpkg_path = 'vcpkg'
-    #         else:
-    #             # Check common vcpkg installation paths
-    #             possible_paths = [
-    #                 os.path.join(os.getenv('USERPROFILE'), 'vcpkg', 'vcpkg.exe'),
-    #                 'C:\\vcpkg\\vcpkg.exe',
-    #                 os.path.join(os.getenv('VCPKG_ROOT', ''), 'vcpkg.exe')
-    #             ]
-    #             for path in possible_paths:
-    #                 if os.path.exists(path):
-    #                     vcpkg_path = path
-    #                     break
-            
-    #         if not vcpkg_path:
-    #             print("vcpkg not found. Please install vcpkg first:")
-    #             print("1. Clone vcpkg: git clone https://github.com/Microsoft/vcpkg.git")
-    #             print("2. Run: .\\vcpkg\\bootstrap-vcpkg.bat")
-    #             print("3. Add vcpkg root to PATH or set VCPKG_ROOT environment variable")
-    #             return False
-                
-    #         # Install DirectX-Headers package
-    #         print("Installing DirectX-Headers via vcpkg...")
-    #         subprocess.check_call([vcpkg_path, 'install', '--triplet', 'x64-windows'])
-    #         # subprocess.check_call([vcpkg_path, 'install', 'directxtk:x64-windows'])
-    #         # subprocess.check_call([vcpkg_path, 'install', 'directx-headers:x64-windows'])
-    #         return True
-            
-    #     except subprocess.CalledProcessError as e:
-    #         print(f"Failed to install DirectX-Headers: {e}")
-    #         return False
+    DX12_HEADERS_PATH = Path(os.getcwd()) / 'external' / 'DirectX-Headers'
+    def setup_dx12_env():
+        try:
+            # Check if the DirectX headers are already installed
+            if DX12_HEADERS_PATH.exists():
+                print('DX12 Headers already installed')
+            else:
+                DX12_HEADERS_REPO_URL = 'https://github.com/microsoft/DirectX-Headers.git'
+                try: 
+                    subprocess.run(
+                        ['git', 'clone', DX12_HEADERS_REPO_URL, DX12_HEADERS_PATH],
+                        check=True
+                    )
+                    print(f'Cloned DX12 Headers to {DX12_HEADERS_PATH}.')
+
+                    # print('Building static library for DX12 headers...')
+                    # DX12_HEADERS_BUILD_DIR = DX12_HEADERS_PATH / 'build'
+                    # try: 
+                    #     os.makedirs(DX12_HEADERS_BUILD_DIR)
+                    #     print('Created DX12 headers build directory')
+                    #     print('Building DX12 Header library')
+
+                    #     try:
+                    #         subprocess.run(
+                    #             ['cmake', '-S', DX12_HEADERS_PATH, '-B', DX12_HEADERS_BUILD_DIR]
+                    #             ,check=True
+                    #         )
+                    #     except subprocess.CalledProcessError as e:
+                    #         print(f'Error building DX12 Headers: {e}')
+
+                    #     try:
+                    #         subprocess.run(
+                    #             ['cmake', '--build', DX12_HEADERS_BUILD_DIR]
+                    #             ,check=True
+                    #         )
+                    #     except subprocess.CalledProcessError as e:
+                    #         print(f'Error building DX12 Headers: {e}')
+
+                    # except FileExistsError:
+                    #     print(f'Directory {DX12_HEADERS_BUILD_DIR} already exists.')
+                    # except Exception as e:
+                    #     print(f'Error creating DX12 Headers build dir: {e}')
+                    # print(f'Done building library to {DX12_HEADERS_BUILD_DIR}')
+                except subprocess.CalledProcessError as e: 
+                    print(f"Error cloning DX12 Headers: {e}")
+        except:
+            print("ERROR")
+
+    setup_dx12_env()
 
     def detect_windows_sdk_path():
         """Detect the latest Windows SDK installation path."""
@@ -121,22 +136,57 @@ if env['PLATFORM'] == 'win32':
     #     print("Failed to set up DirectX Headers. Build may fail.")
     windows_sdk_path = detect_windows_sdk_path()
 
+    def install_dx_agility():
+        try:
+            agility_path = Path(os.getcwd()) / 'external' / 'agility.zip'
+            if not agility_path.exists():
+                # Invoke-WebRequest -Uri https://www.nuget.org/api/v2/package/Microsoft.Direct3D.D3D12/1.4.10 -OutFile agility.zip
+                subprocess.run(
+                    [
+                        'powershell', 
+                        'Invoke-WebRequest', 
+                        '-Uri', 'https://www.nuget.org/api/v2/package/Microsoft.Direct3D.D3D12/1.4.10', 
+                        '-OutFile', agility_path
+                    ]
+                    ,check=True
+                )
+                
+                subprocess.run(
+                    [
+                        'powershell', 
+                        'Expand-Archive', 
+                        agility_path,
+                        '-DestinationPath', 'external/d3d'
+                    ]
+                    ,check=True
+                )
+
+            else:
+                print(f'{agility_path} already exists')
+        except Exception as e:
+            print(f'Could not install Agility SDK: {e}')
+
+    install_dx_agility()
     # env.Append(tools=['msvc'])
-    env.Append(CCFLAGS=['/EHsc'])
+    env.Append(CCFLAGS=['/EHsc', '/nologo', '/W3'])
     env.Append(CXXFLAGS=['/std:c++20'])  # For C++20
     env.Append(LIBS=['user32'])
 
+    # windows_sdk_path = find_windows_sdk()
     if windows_sdk_path:
-        vcpkg_install_path = 'vcpkg_installed'
+        # dx_header_dir = setup_nuget()
+        # vcpkg_install_path = 'vcpkg_installed'
         # vcpkg_root = os.getenv('VCPKG_ROOT', 'C:\\vcpkg')
         env.Append(CPPPATH=[
+            DX12_HEADERS_PATH / 'include' / 'directx',
+            'external/d3d/build/native/include',
             # os.path.join(os.getcwd(), vcpkg_install_path, 'x64-windows', 'include'),
             os.path.join(windows_sdk_path['INCLUDE_PATH'], 'um'),
             os.path.join(windows_sdk_path['INCLUDE_PATH'], 'shared'),
+            DX12_HEADERS_PATH / 'include',
         ])
 
         env.Append(LIBPATH=[
-            os.path.join(vcpkg_install_path, 'x64-windows', 'lib'),  
             os.path.join(windows_sdk_path['LIB_PATH'], 'um', 'x64')
         ])
 

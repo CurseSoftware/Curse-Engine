@@ -6,7 +6,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/engine/**",
-                "${workspaceFolder}/testbed/**"
+                "${workspaceFolder}/testbed/**",
+                "${workspaceFolder}/external/d3d/build/native/include/**"
                 // "${workspaceFolder}/engine/include",
                 // "${workspaceFolder}/engine/src",
                 // "${workspaceFolder}/testbed/include",

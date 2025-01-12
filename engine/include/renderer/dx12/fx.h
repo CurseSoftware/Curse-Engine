@@ -8,6 +8,6 @@
 #include <DirectXMath.h>
 #include <wrl.h>
 using namespace Microsoft::WRL;
-// #include "directx/d3dx12.h"
+#include "d3dx12.h"
 
 #endif

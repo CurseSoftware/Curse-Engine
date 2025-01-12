@@ -25,6 +25,16 @@ private:
     void _enable_debug_layer();
     ComPtr<IDXGIAdapter4> _get_adapter(bool use_warp);
     ComPtr<ID3D12Device2> _create_device(ComPtr<IDXGIAdapter4> adapter);
+    ComPtr<ID3D12CommandQueue> _create_command_queue(ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type);
+    bool _check_treat_support();
+    ComPtr<IDXGISwapChain4> _create_swapchain(
+        HWND hwnd,
+        ComPtr<ID3D12CommandQueue> command_queue,
+        u32 width, u32 height,
+        u32 n_buffers
+    );
+    ComPtr<ID3D12DescriptorHeap> _create_descriptor_head(ComPtr<ID3D12Device2> device, D3D12_DESCRIPTOR_HEAP_TYPE type, u32 n_descs);
+    // void _update_render_targets(ComPtr<ID3D12Device2> device, ComPtr<IDXGISwapChain4> swapchain, ComPtr<ID3D12DescriptorHeap> descriptor_heap);
 
     bool _is_initialized { false };
     bool _vsync { true };
