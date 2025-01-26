@@ -3,6 +3,7 @@
 // Platform Detection
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #define Q_PLATFORM_WINDOWS 1
+#define NOMINMAX
 #ifndef _WIN64
 #error "64 bit is required for windows"
 #endif

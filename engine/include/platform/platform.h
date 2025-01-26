@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 #if defined(Q_PLATFORM_WINDOWS)
+#define NOMINMAX
 #include <windows.h>
 #endif
 
@@ -93,6 +94,9 @@ public:
 
     /// @brief Pump the window event messages to be handled
     bool pump_messages();
+
+    /// @brief Draw a frame for the window
+    void draw_frame();
 
     const WindowHandle& get_handle() const { return m_handle; }
 

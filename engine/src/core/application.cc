@@ -63,6 +63,8 @@ void Application::shutdown() noexcept {
     platform::Platform::shutdown();
     EventHandler::shutdown();
     logger::Logger::shutdown();
+
+    std::cout << "Application shutdown successfully.\n";
 }
 
 /// @brief Run the application
@@ -87,7 +89,6 @@ Application::Application() noexcept {}
 bool Application::on_event(Event& event, EventContext& context) {
     switch (event.type()) {
         case EventType::APPLICATION_QUIT: {
-            logger::Logger::get()->trace("APPLICATION QUIT CALLBACK");
             Application::get()->state.is_running = false;
             return true;
         } break;

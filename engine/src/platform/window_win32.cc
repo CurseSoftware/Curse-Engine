@@ -212,6 +212,10 @@ bool Window::should_close() {
 	return window_should_close;
 }
 
+void Window::draw_frame() {
+	m_renderer->present();
+}
+
 // Handle messages from the window
 bool Window::pump_messages() {
 	MSG message;
