@@ -128,6 +128,7 @@ void Platform::startup(const std::string& name, u32 width, u32 height) {
 void Platform::pump_messages() {
     for (const auto& window : Platform::get()->_windows) {
         window.second->pump_messages();
+        window.second->draw_frame();
     }
 }
 

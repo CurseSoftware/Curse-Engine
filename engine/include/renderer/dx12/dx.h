@@ -258,7 +258,6 @@ struct Device {
     ) {
         device->CreateRenderTargetView(resource.Get(), desc, rtv_handle);
     }
-
 };
 
 struct CommandQueue {
@@ -385,6 +384,24 @@ struct DescriptorHeap {
     /// @return The CPU descriptor handle
     D3D12_CPU_DESCRIPTOR_HANDLE cpu_descriptor_handle_for_start() {
         return heap->GetCPUDescriptorHandleForHeapStart();
+    }
+};
+
+struct CommandAllocator {
+    // ComPtr<ID3D12CommandAllocator> allocator;
+
+    static CommandAllocator create(
+        const Device& device
+        , D3D12_COMMAND_LIST_TYPE type
+    ) {
+        CommandAllocator rv = {};
+        ComPtr<ID3D12CommandAllocator> allocator;
+        DX_ASSERT(
+            device.device->CreateCommandAllocator(type, IID_PPV_ARGS(&allocator))
+            , "CommandAllocator::create -> Unable to create command allocator"
+        );
+
+        return rv;
     }
 };
 

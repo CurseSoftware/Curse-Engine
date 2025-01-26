@@ -34,7 +34,7 @@ public:
 private:
 };
 
-constexpr u32 NUM_FRAMES = 3;
+constexpr u32 NUM_FRAMES = 2;
 
 } // renderer namespace
 } // gravity namespace

@@ -43,17 +43,20 @@ private:
 
     HANDLE _fence_event;
     ComPtr<ID3D12Fence> _fence;
-    UINT64 _fence_value;
 
     struct {
         u32 current_width;
         u32 current_height;
         UINT frame_index;
+        UINT64 fence_value;
         HWND hwnd;
     } _state;
 
     /* METHODS */
     void _load_pipeline();
+    void _load_assets();
+    void _populate_command_buffers();
+    void _wait_for_prev_frame();
 };
 
 } // dx12 namespace

@@ -66,6 +66,7 @@ Window::Window(Window&& other) {
 	std::swap(m_can_resize, other.m_can_resize);
 	std::swap(m_is_initialized, other.m_is_initialized);
 	std::swap(m_should_close, other.m_should_close);
+	std::swap(m_renderer, other.m_renderer);
 }
 
 
