@@ -116,7 +116,7 @@ void Platform::startup(const std::string& name, u32 width, u32 height) {
 
     Platform::instance->_primary_window_name = name;
     Platform::instance->_windows[name] = Window::create(width, height, name).unwrap();
-    // Platform::instance->_windows[name] = std::make_unique<Window>(Window::create(width, height, name).unwrap());
+    Platform::instance->_primary_window = Platform::instance->_windows[name];
     core::InputHandler::get()->register_window(Platform::instance->_windows[name]);
     Platform::instance->_windows[name]->show();
     std::vector<std::string> keys;
@@ -136,7 +136,7 @@ void Platform::pump_messages() {
 void Platform::shutdown() {
     if (Platform::instance) {
         core::logger::Logger::get()->debug("Shutdown platform <Win32> successful.");
-        Platform::instance->_windows[Platform::get()->_primary_window_name]->close();
+        Platform::instance->_primary_window->close();
         delete Platform::instance;
         Platform::instance = nullptr;
     }

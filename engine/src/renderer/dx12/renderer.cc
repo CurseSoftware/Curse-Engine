@@ -48,12 +48,6 @@ bool DX12_Renderer::startup(const config& conf) {
 /// @brief Shutdown DX12 Renderer
 void DX12_Renderer::shutdown() {
     Logger::get()->debug("DX12 Renderer shutdown.");
-    // _flush(
-    //     _command_queue,
-    //     _fence,
-    //     _fence_value,
-    //     _fence_event
-    // );
 }
 
 void DX12_Renderer::begin_frame() {
@@ -223,7 +217,17 @@ void DX12_Renderer::_load_pipeline() {
         )
         , "DX12_Renderer::_load_pipeline -> Failed to create command allocator"
     );
-
+    Logger::get()->debug("Command list allocator created.");
+    
+    DX_ASSERT(
+        _device->CreateCommandAllocator(
+            D3D12_COMMAND_LIST_TYPE_BUNDLE
+            , IID_PPV_ARGS(&_bundle_allocator)
+        )
+        , "DX12_Renderer::_load_pipeline -> Failed to create bundle allocator"
+    );
+    Logger::get()->debug("Bundle allocator created.");
+    
     Logger::get()->info("Pipeline loaded successfully.");
 }
 
@@ -244,6 +248,70 @@ void DX12_Renderer::_load_assets() {
         );
     }
 
+    {
+        ComPtr<ID3DBlob> vertex_shader;
+        ComPtr<ID3DBlob> pixel_shader;
+
+#if defined(_DEBUG)
+        UINT compile_flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+        UINT compile_flags = 0;
+#endif // _DEBUG
+
+        DX_ASSERT(
+            D3DCompileFromFile(
+                L"assets/shaders.hlsl"
+                , nullptr
+                , nullptr 
+                , "VSMain"
+                , "vs_5_0"
+                , compile_flags
+                , 0
+                , &vertex_shader
+                , nullptr
+            )
+            , "DX12_Renderer::_load_assets -> Failed to compile vertex shader"
+        );
+        DX_ASSERT(
+            D3DCompileFromFile(
+                L"assets/shaders.hlsl"
+                , nullptr
+                , nullptr 
+                , "PSMain"
+                , "ps_5_0"
+                , compile_flags
+                , 0
+                , &pixel_shader
+                , nullptr
+            )
+            , "DX12_Renderer::_load_assets -> Failed to compile pixel shader"
+        );
+        Logger::get()->info("Shaders loaded and compiled");
+
+        D3D12_INPUT_ELEMENT_DESC input_element_descs[] = {
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+            , { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+        };
+        D3D12_GRAPHICS_PIPELINE_STATE_DESC pipeline_desc = {};
+        pipeline_desc.InputLayout = { input_element_descs, _countof(input_element_descs) };
+        pipeline_desc.pRootSignature = _root_signature.Get();
+        pipeline_desc.VS = CD3DX12_SHADER_BYTECODE(vertex_shader.Get());
+        pipeline_desc.PS = CD3DX12_SHADER_BYTECODE(pixel_shader.Get());
+        pipeline_desc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        pipeline_desc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+        pipeline_desc.DepthStencilState.DepthEnable = FALSE;
+        pipeline_desc.DepthStencilState.StencilEnable = FALSE;
+        pipeline_desc.SampleMask = UINT_MAX;
+        pipeline_desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        pipeline_desc.NumRenderTargets = 1;
+        pipeline_desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        pipeline_desc.SampleDesc.Count = 1;
+        DX_ASSERT(
+            _device->CreateGraphicsPipelineState(&pipeline_desc, IID_PPV_ARGS(&_pipeline_state))
+            , "DX12_Renderer::_load_assets -> Failed to create pipeline state"
+        );
+    }
+
     UINT node_mask = 0;
     DX_ASSERT(
         _device->CreateCommandList(node_mask, D3D12_COMMAND_LIST_TYPE_DIRECT, _command_allocator.Get(), nullptr, IID_PPV_ARGS(&_command_list))
@@ -254,6 +322,82 @@ void DX12_Renderer::_load_assets() {
         _command_list->Close()
         , "DX12_Renderer::_load_assets -> Failed to close command list"
     );
+
+    // Vertex Buffer
+    {
+        f32 aspect_ratio = _state.current_width / _state.current_height;
+        // Vertex triangle_vertices[] = {
+        //     { 
+        //         .position{ 0.0f, 0.25f * aspect_ratio, 0.0f },
+        //         .color{ 1.0f, 0.2f, 0.6f, 1.0f }
+        //     }
+        //     ,{ 
+        //         .position{ 0.25f * aspect_ratio, -0.25f * aspect_ratio, 0.0f },
+        //         .color{ 0.2f, 1.0f, 0.6f, 1.0f }
+        //     }
+        //     ,{ 
+        //         .position{ -0.25f * aspect_ratio, -0.25f * aspect_ratio, 0.0f },
+        //         .color{ 0.6f, 0.6f, 1.0f, 1.0f }
+        //     }
+        // };
+        Vertex triangle_vertices[] =
+        {
+            { { 0.0f, 0.25f * aspect_ratio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+            { { 0.25f, -0.25f * aspect_ratio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
+            { { -0.25f, -0.25f * aspect_ratio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
+        };
+
+        const UINT vertex_buffer_size = sizeof(triangle_vertices);
+
+        auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(vertex_buffer_size);
+        DX_ASSERT(
+            _device->CreateCommittedResource(
+                &heap_properties
+                , D3D12_HEAP_FLAG_NONE
+                , &resource_desc
+                , D3D12_RESOURCE_STATE_GENERIC_READ
+                , nullptr
+                , IID_PPV_ARGS(&_vertex_buffer)
+            )
+            , "DX12_Renderer::_load_assest -> Failed to create committed resource for vertex buffer"
+        );
+
+        UINT8 *p_vertex_data_begin;
+        CD3DX12_RANGE read_range(0, 0); // do not intend to read from this resource on CPU
+        DX_ASSERT(_vertex_buffer->Map(0, &read_range, reinterpret_cast<void**>(&p_vertex_data_begin))
+            , "DX12_Renderer::_load_assets -> Failed to map vertex buffer"
+        );
+        memcpy(p_vertex_data_begin, triangle_vertices, sizeof(triangle_vertices));
+        _vertex_buffer->Unmap(0, nullptr);
+
+        _vertex_buffer_view.BufferLocation = _vertex_buffer->GetGPUVirtualAddress();
+        _vertex_buffer_view.StrideInBytes = sizeof(Vertex);
+        _vertex_buffer_view.SizeInBytes = vertex_buffer_size;
+    }
+
+    // Bundle command list
+    {
+        UINT mask = 0;
+        DX_ASSERT(
+            _device->CreateCommandList(
+                mask
+                , D3D12_COMMAND_LIST_TYPE_BUNDLE
+                , _bundle_allocator.Get()
+                , _pipeline_state.Get()
+                , IID_PPV_ARGS(&_bundle)
+            )
+            , "DX12_Renderer::_load_assets -> Failed to create bundle"
+        );
+        _bundle->SetGraphicsRootSignature(_root_signature.Get());
+        _bundle->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        _bundle->IASetVertexBuffers(0, 1, &_vertex_buffer_view);
+        _bundle->DrawInstanced(3, 1, 0, 0);
+        DX_ASSERT(
+            _bundle->Close()
+            , "DX12_Renderer::_load_assets -> Failed to close bundle command list."
+        );
+    }
 
     {
         DX_ASSERT(
@@ -295,19 +439,22 @@ void DX12_Renderer::_populate_command_buffers() {
         , "DX12_Renderer::_populate_command_buffers -> Failed to reset command list"
     );
 
+    // _command_list->SetGraphicsRootSignature(_root_signature.Get());
+    _command_list->RSSetViewports(1, &_viewport);
+    _command_list->RSSetScissorRects(1, &_scissor_rect);
+
     auto barrier0 = CD3DX12_RESOURCE_BARRIER::Transition(
         _render_targets[_state.frame_index].Get()
         , D3D12_RESOURCE_STATE_PRESENT
         , D3D12_RESOURCE_STATE_RENDER_TARGET
     );
-
-
     _command_list->ResourceBarrier(
         1
         , &barrier0
     );
 
     CD3DX12_CPU_DESCRIPTOR_HANDLE rtv_handle(_rtv_heap->GetCPUDescriptorHandleForHeapStart(), _state.frame_index, _rtv_descriptor_size);
+    _command_list->OMSetRenderTargets(1, &rtv_handle, FALSE, nullptr);
     
     auto barrier1 = CD3DX12_RESOURCE_BARRIER::Transition(
         _render_targets[_state.frame_index].Get()
@@ -317,6 +464,12 @@ void DX12_Renderer::_populate_command_buffers() {
 
     const f32 clear_color[] = { 0.0f, 0.2f, 0.4f, 1.0f };
     _command_list->ClearRenderTargetView(rtv_handle, clear_color, 0, nullptr);
+    _command_list->ExecuteBundle(_bundle.Get());
+    
+    // _command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    // _command_list->IASetVertexBuffers(0, 1, &_vertex_buffer_view);
+    // _command_list->DrawInstanced(3, 1, 0, 0);
+    
     _command_list->ResourceBarrier(
         1
         , &barrier1

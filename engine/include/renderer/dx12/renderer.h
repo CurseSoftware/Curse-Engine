@@ -8,12 +8,11 @@
 #include <chrono>
 
 #if defined(Q_PLATFORM_WINDOWS)
+#include <DirectXMath.h>
 
 namespace gravity {
 namespace renderer {
 namespace dx12 {
-
-
 
 class DX12_Renderer : public Renderer {
 public:
@@ -34,11 +33,13 @@ private:
     ComPtr<ID3D12Device> _device;
     ComPtr<ID3D12Resource> _render_targets[NUM_FRAMES];
     ComPtr<ID3D12CommandAllocator> _command_allocator;
+    ComPtr<ID3D12CommandAllocator> _bundle_allocator;
     ComPtr<ID3D12CommandQueue> _command_queue;
     ComPtr<ID3D12RootSignature> _root_signature;
     ComPtr<ID3D12DescriptorHeap> _rtv_heap;
     ComPtr<ID3D12PipelineState> _pipeline_state;
     ComPtr<ID3D12GraphicsCommandList> _command_list;
+    ComPtr<ID3D12GraphicsCommandList> _bundle;
     UINT _rtv_descriptor_size;
 
     HANDLE _fence_event;
@@ -51,6 +52,15 @@ private:
         UINT64 fence_value;
         HWND hwnd;
     } _state;
+
+    struct Vertex {
+        DirectX::XMFLOAT3  position;
+        DirectX::XMFLOAT4  color;
+    };
+
+    // TEMP
+    ComPtr<ID3D12Resource> _vertex_buffer;
+    D3D12_VERTEX_BUFFER_VIEW _vertex_buffer_view;
 
     /* METHODS */
     void _load_pipeline();

@@ -194,12 +194,12 @@ private:
     ~Platform() = default;
 
     static Platform* instance;
-
     
     // MEMBERS //
     std::string _primary_window_name { "" };                           // name of the platform's primary window
     std::unordered_map<std::string, Window*> _windows; // table of all created windows keyed on their names
     double clock_frequency;
+    Window* _primary_window { nullptr };               // primary window of the application
     
     #if defined(Q_PLATFORM_WINDOWS)
     LARGE_INTEGER start_time;
