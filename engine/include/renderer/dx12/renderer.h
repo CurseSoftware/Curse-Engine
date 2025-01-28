@@ -37,6 +37,7 @@ private:
     ComPtr<ID3D12CommandQueue> _command_queue;
     ComPtr<ID3D12RootSignature> _root_signature;
     ComPtr<ID3D12DescriptorHeap> _rtv_heap;
+    ComPtr<ID3D12DescriptorHeap> _cbv_heap;
     ComPtr<ID3D12PipelineState> _pipeline_state;
     ComPtr<ID3D12GraphicsCommandList> _command_list;
     ComPtr<ID3D12GraphicsCommandList> _bundle;
@@ -58,8 +59,17 @@ private:
         DirectX::XMFLOAT4  color;
     };
 
+    struct SceneConstantBuffer {
+        DirectX::XMFLOAT4  offset;
+        float padding[60];
+    };
+    static_assert((sizeof(SceneConstantBuffer) % 256) == 0, "Constant Buffer size must be 256-byte aligned");
+
     // TEMP
     ComPtr<ID3D12Resource> _vertex_buffer;
+    ComPtr<ID3D12Resource> _constant_buffer;
+    SceneConstantBuffer _constant_buffer_data;
+    UINT8* _p_cbv_data_begin;
     D3D12_VERTEX_BUFFER_VIEW _vertex_buffer_view;
 
     /* METHODS */

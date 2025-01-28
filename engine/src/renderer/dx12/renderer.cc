@@ -189,6 +189,18 @@ void DX12_Renderer::_load_pipeline() {
 
         _rtv_descriptor_size = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
         Logger::get()->debug("Descriptor heap created.");
+
+        D3D12_DESCRIPTOR_HEAP_DESC cbv_heap_desc {};
+        cbv_heap_desc.NumDescriptors = 1;
+        cbv_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        cbv_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        DX_ASSERT(
+            _device->CreateDescriptorHeap(
+                &cbv_heap_desc
+                , IID_PPV_ARGS(&_cbv_heap)
+            )
+            , "DX12_Renderer::_load_pipeline -> Failed to create constant buffer heap"
+        );
     }
 
     {
@@ -233,19 +245,41 @@ void DX12_Renderer::_load_pipeline() {
 
 void DX12_Renderer::_load_assets() {
     {
-        CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
- 
+        D3D12_FEATURE_DATA_ROOT_SIGNATURE feature_data = {};
+        feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
+
+        if (FAILED(_device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &feature_data, sizeof(feature_data)))) {
+            feature_data.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;            
+        }
+
+        CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
+        CD3DX12_ROOT_PARAMETER1 root_parameters[1];
+
+        ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+        root_parameters[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_VERTEX);
+
+        D3D12_ROOT_SIGNATURE_FLAGS root_signature_flags 
+            = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+            | D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS
+            | D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS
+            | D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS
+            | D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS
+        ;
+
+        CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC root_signature_desc;
+        root_signature_desc.Init_1_1(_countof(root_parameters), root_parameters, 0, nullptr, root_signature_flags);
+
         ComPtr<ID3DBlob> signature;
         ComPtr<ID3DBlob> error;
         DX_ASSERT(
-            D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error)
-            , "FAILED TO CREATE ROOT SIGNATURE"
+            D3DX12SerializeVersionedRootSignature(&root_signature_desc, feature_data.HighestVersion, &signature, &error)
+            , "DX12_Renderer::_load_pipeline -> Failed to serialize root signature"
         );
         DX_ASSERT(
             _device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&_root_signature))
-            , "FAILED TO CREATE ROOT SIGNATURE"
+            , "DX12_Renderer::_load_pipeline -> Failed to create root signature"
         );
+
     }
 
     {
@@ -310,6 +344,7 @@ void DX12_Renderer::_load_assets() {
             _device->CreateGraphicsPipelineState(&pipeline_desc, IID_PPV_ARGS(&_pipeline_state))
             , "DX12_Renderer::_load_assets -> Failed to create pipeline state"
         );
+        Logger::get()->info("Graphics pipeline created successfully.");
     }
 
     UINT node_mask = 0;
@@ -376,6 +411,36 @@ void DX12_Renderer::_load_assets() {
         _vertex_buffer_view.SizeInBytes = vertex_buffer_size;
     }
 
+    // Create constant buffers
+    {
+        const UINT constant_buffer_size = sizeof(SceneConstantBuffer);
+        auto heap_properties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+        auto resource_desc = CD3DX12_RESOURCE_DESC::Buffer(constant_buffer_size);
+        DX_ASSERT(
+            _device->CreateCommittedResource(
+                &heap_properties
+                , D3D12_HEAP_FLAG_NONE
+                , &resource_desc
+                , D3D12_RESOURCE_STATE_GENERIC_READ
+                , nullptr
+                , IID_PPV_ARGS(&_constant_buffer)
+            )
+            , "DX12_Renderer::_load_assets -> Failed to create constant buffer"
+        );
+
+        D3D12_CONSTANT_BUFFER_VIEW_DESC cbv_desc = {};
+        cbv_desc.BufferLocation = _constant_buffer->GetGPUVirtualAddress();
+        cbv_desc.SizeInBytes = constant_buffer_size;
+        _device->CreateConstantBufferView(&cbv_desc, _cbv_heap->GetCPUDescriptorHandleForHeapStart());
+
+        CD3DX12_RANGE read_range(0, 0);
+        DX_ASSERT(
+            _constant_buffer->Map(0, &read_range, reinterpret_cast<void**>(&_p_cbv_data_begin))
+            , "DX12_Renderer::_load_assets -> Failed to map constant buffer"
+        );
+        memcpy(_p_cbv_data_begin, &_constant_buffer_data, sizeof(_constant_buffer_data));
+    }
+
     // Bundle command list
     {
         UINT mask = 0;
@@ -412,9 +477,20 @@ void DX12_Renderer::_load_assets() {
             DX_ASSERT(HRESULT_FROM_WIN32(GetLastError()), "DX12_Renderer::_load_assets -> invalid fence event.");
         }
     }
+
+    Logger::get()->info("Assets loaded properly");
 }
 
 void DX12_Renderer::present() {
+    const float speed = 0.015f;
+    const float offset_bounds = 1.25f;
+
+    _constant_buffer_data.offset.x += speed;
+    if (_constant_buffer_data.offset.x > offset_bounds) {
+        _constant_buffer_data.offset.x -= offset_bounds;
+    }
+    memcpy(_p_cbv_data_begin, &_constant_buffer_data, sizeof(_constant_buffer_data));
+
     _populate_command_buffers();
 
     ID3D12CommandList* pp_command_lists[] = { _command_list.Get() };
@@ -439,7 +515,12 @@ void DX12_Renderer::_populate_command_buffers() {
         , "DX12_Renderer::_populate_command_buffers -> Failed to reset command list"
     );
 
-    // _command_list->SetGraphicsRootSignature(_root_signature.Get());
+    _command_list->SetGraphicsRootSignature(_root_signature.Get());
+
+    ID3D12DescriptorHeap* pp_heaps[] = { _cbv_heap.Get() };
+    _command_list->SetDescriptorHeaps(_countof(pp_heaps), pp_heaps);
+
+    _command_list->SetGraphicsRootDescriptorTable(0, _cbv_heap->GetGPUDescriptorHandleForHeapStart());
     _command_list->RSSetViewports(1, &_viewport);
     _command_list->RSSetScissorRects(1, &_scissor_rect);
 
