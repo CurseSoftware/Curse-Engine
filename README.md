@@ -1,4 +1,4 @@
-# Gravity Game
+# Curse Engine
 
 ## Building and Running
 The build system for this is [Scons]("https://scons.org/") which is a Python-based build system.
