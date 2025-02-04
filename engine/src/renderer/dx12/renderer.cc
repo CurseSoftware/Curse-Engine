@@ -1,4 +1,5 @@
 #include "renderer/dx12/renderer.h"
+#include "renderer/dx12/dx12_types.h"
 
 #if defined(Q_PLATFORM_WINDOWS)
 
@@ -40,7 +41,7 @@ bool DX12_Renderer::startup(const config& conf) {
     _rtv_descriptor_size = 0;
 
     _load_pipeline();
-    _load_assets();
+    // _load_assets();
 
     return true;
 }
@@ -88,159 +89,166 @@ void DX12_Renderer::resize(u32 width, u32 height) {
 
 /// @brief Load objects necessary to create our pipeline
 void DX12_Renderer::_load_pipeline() {
-    UINT dxgi_factory_flags = 0;
+//     UINT dxgi_factory_flags = 0;
 
-#ifdef _DEBUG
-    {
-        ComPtr<ID3D12Debug> debug_controller;
-        if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller)))) {
-            debug_controller->EnableDebugLayer();
-            dxgi_factory_flags|= DXGI_CREATE_FACTORY_DEBUG;
-        }
-    }
-#endif // _DEBUG
+// #ifdef _DEBUG
+//     {
+//         ComPtr<ID3D12Debug> debug_controller;
+//         if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debug_controller)))) {
+//             debug_controller->EnableDebugLayer();
+//             dxgi_factory_flags|= DXGI_CREATE_FACTORY_DEBUG;
+//         }
+//     }
+// #endif // _DEBUG
 
-    ComPtr<IDXGIFactory4> factory;
-    DX_ASSERT(
-        CreateDXGIFactory2(dxgi_factory_flags, IID_PPV_ARGS(&factory))
-        , "DX12_Renderer::_load_pipeline -> Failed to create factory"
-    );
+//     ComPtr<IDXGIFactory4> factory;
+//     DX_ASSERT(
+//         CreateDXGIFactory2(dxgi_factory_flags, IID_PPV_ARGS(&factory))
+//         , "DX12_Renderer::_load_pipeline -> Failed to create factory"
+//     );
 
-    Logger::get()->debug("Factory created.");
+//     Logger::get()->debug("Factory created.");
 
-    if (_use_warp) {
-        ComPtr<IDXGIAdapter4> warp_adapter;
-        DX_ASSERT(factory->EnumWarpAdapter(IID_PPV_ARGS(&warp_adapter)), "DX12_Renderer::_load_pipeline -> Failed to enumerate warp adapter");
-        DX_ASSERT(
-            D3D12CreateDevice(
-                warp_adapter.Get()
-                , D3D_FEATURE_LEVEL_11_0
-                , IID_PPV_ARGS(&_device)
-            )
-            , "DX12_Renderer::_load_pipeline -> Failed to create warp device"
-        );
-        Logger::get()->debug("Warp device created.");
-    } else {
-        ComPtr<IDXGIAdapter1> hardware_adapter;
-        Device::get_hardware_adapter(factory.Get(), &hardware_adapter);
+//     if (_use_warp) {
+//         ComPtr<IDXGIAdapter4> warp_adapter;
+//         DX_ASSERT(factory->EnumWarpAdapter(IID_PPV_ARGS(&warp_adapter)), "DX12_Renderer::_load_pipeline -> Failed to enumerate warp adapter");
+//         DX_ASSERT(
+//             D3D12CreateDevice(
+//                 warp_adapter.Get()
+//                 , D3D_FEATURE_LEVEL_11_0
+//                 , IID_PPV_ARGS(&_device)
+//             )
+//             , "DX12_Renderer::_load_pipeline -> Failed to create warp device"
+//         );
+//         Logger::get()->debug("Warp device created.");
+//     } else {
+//         ComPtr<IDXGIAdapter1> hardware_adapter;
+//         Device::get_hardware_adapter(factory.Get(), &hardware_adapter);
 
-        DX_ASSERT(
-            D3D12CreateDevice(
-                hardware_adapter.Get()
-                , D3D_FEATURE_LEVEL_11_0
-                , IID_PPV_ARGS(&_device)
-            )
-            , "DX12_Renderer::_load_pipeline -> Failed to create hardware device"
-        );
-        Logger::get()->debug("Hardware device created.");
-    }
+//         DX_ASSERT(
+//             D3D12CreateDevice(
+//                 hardware_adapter.Get()
+//                 , D3D_FEATURE_LEVEL_11_0
+//                 , IID_PPV_ARGS(&_device)
+//             )
+//             , "DX12_Renderer::_load_pipeline -> Failed to create hardware device"
+//         );
+//         Logger::get()->debug("Hardware device created.");
+//     }
 
-    D3D12_COMMAND_QUEUE_DESC queue_desc = {};
-    queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-    queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-    DX_ASSERT(
-        _device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&_command_queue))
-        , "DX12_Renderer::_load_pipeline -> Failed to create command queue"
-    );
-    Logger::get()->debug("Command queue created.");
+//     D3D12_COMMAND_QUEUE_DESC queue_desc = {};
+//     queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+//     queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+//     DX_ASSERT(
+//         _device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&_command_queue))
+//         , "DX12_Renderer::_load_pipeline -> Failed to create command queue"
+//     );
+//     Logger::get()->debug("Command queue created.");
 
-    DXGI_SWAP_CHAIN_DESC1 swapchain_desc = {};
-    swapchain_desc.BufferCount = NUM_FRAMES;
-    swapchain_desc.Width = _state.current_width;
-    swapchain_desc.Height = _state.current_height;
-    swapchain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    swapchain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapchain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    swapchain_desc.SampleDesc.Count = 1;
+//     DXGI_SWAP_CHAIN_DESC1 swapchain_desc = {};
+//     swapchain_desc.BufferCount = NUM_FRAMES;
+//     swapchain_desc.Width = _state.current_width;
+//     swapchain_desc.Height = _state.current_height;
+//     swapchain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+//     swapchain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+//     swapchain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+//     swapchain_desc.SampleDesc.Count = 1;
 
-    ComPtr<IDXGISwapChain1> swapchain;
-    DX_ASSERT(
-        factory->CreateSwapChainForHwnd(
-            _command_queue.Get()
-            , _state.hwnd
-            , &swapchain_desc
-            , nullptr
-            , nullptr
-            , &swapchain
-        )
-        , "DX12_Renderer::_load_pipeline -> Failed to create swapchain1"
-    );
+//     ComPtr<IDXGISwapChain1> swapchain;
+//     DX_ASSERT(
+//         factory->CreateSwapChainForHwnd(
+//             _command_queue.Get()
+//             , _state.hwnd
+//             , &swapchain_desc
+//             , nullptr
+//             , nullptr
+//             , &swapchain
+//         )
+//         , "DX12_Renderer::_load_pipeline -> Failed to create swapchain1"
+//     );
 
-    DX_ASSERT(
-        factory->MakeWindowAssociation(_state.hwnd, DXGI_MWA_NO_ALT_ENTER)
-        , "DX12_Renderer::_load_pipeline -> Failed to create window association"
-    );
-    DX_ASSERT(
-        swapchain.As(&_swapchain)
-        , "DX12_Renderer::_load_pipeline -> Failed to convert swapchain1 to swapchain4"
-    );
-    Logger::get()->debug("SwapChain reated.");
-    _state.frame_index = _swapchain->GetCurrentBackBufferIndex();
+//     DX_ASSERT(
+//         factory->MakeWindowAssociation(_state.hwnd, DXGI_MWA_NO_ALT_ENTER)
+//         , "DX12_Renderer::_load_pipeline -> Failed to create window association"
+//     );
+//     DX_ASSERT(
+//         swapchain.As(&_swapchain)
+//         , "DX12_Renderer::_load_pipeline -> Failed to convert swapchain1 to swapchain4"
+//     );
+//     Logger::get()->debug("SwapChain reated.");
+//     _state.frame_index = _swapchain->GetCurrentBackBufferIndex();
 
-    {
-        D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {};
-        heap_desc.NumDescriptors = NUM_FRAMES;
-        heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-        heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-        DX_ASSERT(
-            _device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&_rtv_heap))
-            , "DX12_Renderer::_load_pipeline -> Failed to create descriptor heap"
-        );
+//     {
+//         D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {};
+//         heap_desc.NumDescriptors = NUM_FRAMES;
+//         heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+//         heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+//         DX_ASSERT(
+//             _device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&_rtv_heap))
+//             , "DX12_Renderer::_load_pipeline -> Failed to create descriptor heap"
+//         );
 
-        _rtv_descriptor_size = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        Logger::get()->debug("Descriptor heap created.");
+//         _rtv_descriptor_size = _device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+//         Logger::get()->debug("Descriptor heap created.");
 
-        D3D12_DESCRIPTOR_HEAP_DESC cbv_heap_desc {};
-        cbv_heap_desc.NumDescriptors = 1;
-        cbv_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-        cbv_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-        DX_ASSERT(
-            _device->CreateDescriptorHeap(
-                &cbv_heap_desc
-                , IID_PPV_ARGS(&_cbv_heap)
-            )
-            , "DX12_Renderer::_load_pipeline -> Failed to create constant buffer heap"
-        );
-    }
+//         D3D12_DESCRIPTOR_HEAP_DESC cbv_heap_desc {};
+//         cbv_heap_desc.NumDescriptors = 1;
+//         cbv_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+//         cbv_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+//         DX_ASSERT(
+//             _device->CreateDescriptorHeap(
+//                 &cbv_heap_desc
+//                 , IID_PPV_ARGS(&_cbv_heap)
+//             )
+//             , "DX12_Renderer::_load_pipeline -> Failed to create constant buffer heap"
+//         );
+//     }
 
-    {
-        CD3DX12_CPU_DESCRIPTOR_HANDLE rtv_handle(_rtv_heap->GetCPUDescriptorHandleForHeapStart());
-        D3D12_RENDER_TARGET_VIEW_DESC *rtv_desc = nullptr;
-        for (
-            UINT idx = 0
-            ; idx < NUM_FRAMES
-            ; idx++
-        ) {
-            DX_ASSERT(
-                _swapchain->GetBuffer(idx, IID_PPV_ARGS(&_render_targets[idx]))
-                , "DX12_Renderer::_load_pipeline -> Failed to create render target"
-            );
-            _device->CreateRenderTargetView(_render_targets[idx].Get(), rtv_desc, rtv_handle);
-            rtv_handle.Offset(1, _rtv_descriptor_size);
-            Logger::get()->debug("Render target view [%u] created.", idx);
-        }
-    }
-    Logger::get()->debug("Frame resources created");
+//     {
+//         CD3DX12_CPU_DESCRIPTOR_HANDLE rtv_handle(_rtv_heap->GetCPUDescriptorHandleForHeapStart());
+//         D3D12_RENDER_TARGET_VIEW_DESC *rtv_desc = nullptr;
+//         for (
+//             UINT idx = 0
+//             ; idx < NUM_FRAMES
+//             ; idx++
+//         ) {
+//             DX_ASSERT(
+//                 _swapchain->GetBuffer(idx, IID_PPV_ARGS(&_render_targets[idx]))
+//                 , "DX12_Renderer::_load_pipeline -> Failed to create render target"
+//             );
+//             _device->CreateRenderTargetView(_render_targets[idx].Get(), rtv_desc, rtv_handle);
+//             rtv_handle.Offset(1, _rtv_descriptor_size);
+//             Logger::get()->debug("Render target view [%u] created.", idx);
+//         }
+//     }
+//     Logger::get()->debug("Frame resources created");
 
-    DX_ASSERT(
-        _device->CreateCommandAllocator(
-            D3D12_COMMAND_LIST_TYPE_DIRECT
-            , IID_PPV_ARGS(&_command_allocator)
-        )
-        , "DX12_Renderer::_load_pipeline -> Failed to create command allocator"
-    );
-    Logger::get()->debug("Command list allocator created.");
+//     DX_ASSERT(
+//         _device->CreateCommandAllocator(
+//             D3D12_COMMAND_LIST_TYPE_DIRECT
+//             , IID_PPV_ARGS(&_command_allocator)
+//         )
+//         , "DX12_Renderer::_load_pipeline -> Failed to create command allocator"
+//     );
+//     Logger::get()->debug("Command list allocator created.");
     
-    DX_ASSERT(
-        _device->CreateCommandAllocator(
-            D3D12_COMMAND_LIST_TYPE_BUNDLE
-            , IID_PPV_ARGS(&_bundle_allocator)
-        )
-        , "DX12_Renderer::_load_pipeline -> Failed to create bundle allocator"
-    );
-    Logger::get()->debug("Bundle allocator created.");
+//     DX_ASSERT(
+//         _device->CreateCommandAllocator(
+//             D3D12_COMMAND_LIST_TYPE_BUNDLE
+//             , IID_PPV_ARGS(&_bundle_allocator)
+//         )
+//         , "DX12_Renderer::_load_pipeline -> Failed to create bundle allocator"
+//     );
+//     Logger::get()->debug("Bundle allocator created.");
     
-    Logger::get()->info("Pipeline loaded successfully.");
+//     Logger::get()->info("Pipeline loaded successfully.");
+    DX12Device device = DX12Device();
+    DX12SwapChain swapchain = DX12SwapChain(
+        &device, 
+        _state.hwnd, 
+        _state.current_width, 
+        _state.current_height
+    );
 }
 
 void DX12_Renderer::_load_assets() {
@@ -482,26 +490,26 @@ void DX12_Renderer::_load_assets() {
 }
 
 void DX12_Renderer::present() {
-    const float speed = 0.015f;
-    const float offset_bounds = 1.25f;
+    // const float speed = 0.015f;
+    // const float offset_bounds = 1.25f;
 
-    _constant_buffer_data.offset.x += speed;
-    if (_constant_buffer_data.offset.x > offset_bounds) {
-        _constant_buffer_data.offset.x -= offset_bounds;
-    }
-    memcpy(_p_cbv_data_begin, &_constant_buffer_data, sizeof(_constant_buffer_data));
+    // _constant_buffer_data.offset.x += speed;
+    // if (_constant_buffer_data.offset.x > offset_bounds) {
+    //     _constant_buffer_data.offset.x -= offset_bounds;
+    // }
+    // memcpy(_p_cbv_data_begin, &_constant_buffer_data, sizeof(_constant_buffer_data));
 
-    _populate_command_buffers();
+    // _populate_command_buffers();
 
-    ID3D12CommandList* pp_command_lists[] = { _command_list.Get() };
-    _command_queue->ExecuteCommandLists(_countof(pp_command_lists), pp_command_lists);
+    // ID3D12CommandList* pp_command_lists[] = { _command_list.Get() };
+    // _command_queue->ExecuteCommandLists(_countof(pp_command_lists), pp_command_lists);
 
-    DX_ASSERT(
-        _swapchain->Present(1, 0)
-        , "DX12_Renderer::_on_render -> Failed to present swapchain image"
-    );
+    // DX_ASSERT(
+    //     _swapchain->Present(1, 0)
+    //     , "DX12_Renderer::_on_render -> Failed to present swapchain image"
+    // );
 
-    _wait_for_prev_frame();
+    // _wait_for_prev_frame();
 }
 
 void DX12_Renderer::_populate_command_buffers() {

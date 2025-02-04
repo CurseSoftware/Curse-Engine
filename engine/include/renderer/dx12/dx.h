@@ -8,6 +8,8 @@ namespace gravity {
 namespace renderer {
 namespace dx12 {
 
+using namespace core::logger;
+
 /// @brief Assertion that DirectX12 API call ended with success
 /// @param hr result of call
 /// @param err error message for failure
@@ -48,76 +50,6 @@ struct DebugController {
     }
 };
 
-struct Adapter {
-    WCHAR* description;
-    SIZE_T dedicated_video_memory { 0 };
-    ComPtr<IDXGIAdapter4> adapter {};
-    
-    static Adapter create(D3D_FEATURE_LEVEL minimum_capability) {
-        SIZE_T max_dedicated_video_memory = 0;
-        ComPtr<IDXGIFactory6> dxgi_factory;
-        DX_ASSERT(
-            CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory))
-            , "Failed to create Factory"
-        );
-
-        ComPtr<IDXGIAdapter1> adapter;
-        ComPtr<IDXGIAdapter1> best_adapter = nullptr;
-        DXGI_ADAPTER_DESC1 best_desc;
-        for (
-            UINT i = 0; 
-            dxgi_factory->EnumAdapters1(i, &adapter) != DXGI_ERROR_NOT_FOUND;
-            i++
-        ) {
-            DXGI_ADAPTER_DESC1 desc;
-            adapter->GetDesc1(&desc);
-
-            // TODO: Support software/warp adapters ?
-            if (desc.Flags & DXGI_ADAPTER_FLAG3_SOFTWARE) {
-                continue;
-            }
-
-            if (SUCCEEDED(D3D12CreateDevice(adapter.Get(), minimum_capability, __uuidof(ID3D12Device), nullptr))) {
-                core::logger::Logger::get()->debug("Adapter %s:", desc.Description);
-                core::logger::Logger::get()->debug("    Video Memory %zu", desc.DedicatedVideoMemory);
-                if (desc.DedicatedVideoMemory > max_dedicated_video_memory) {
-                    best_adapter = adapter;
-                    max_dedicated_video_memory = desc.DedicatedVideoMemory;
-                    best_desc = desc;
-                }
-
-                ComPtr<ID3D12Device10> device;
-                DX_ASSERT(
-                    D3D12CreateDevice(adapter.Get(), minimum_capability, IID_PPV_ARGS(&device)),
-                    "Adapter failed to create device."
-                );
-            } else {
-                core::logger::Logger::get()->error("Incompatible adapter %s", desc.Description);
-            }
-        }
-
-        if (!best_adapter) {
-            core::logger::Logger::get()->fatal("No compatible adapters found.");
-            exit(1);
-        }
-
-        core::logger::Logger::get()->debug("Adapter chosen %s. [Video Memory: %zu]", best_desc.Description, best_desc.DedicatedVideoMemory);
-
-        ComPtr<IDXGIAdapter4> adapter4;
-        DX_ASSERT(
-            best_adapter.As(&adapter4),
-            "Unable to convert adapter to adapter4."
-        );
-
-        Adapter rv;
-        rv.adapter = adapter4;
-        rv.dedicated_video_memory = best_desc.DedicatedVideoMemory;
-        rv.description = best_desc.Description;
-
-        return rv;
-    }
-};
-
 struct Device {
     ComPtr<ID3D12Device> device;
 
@@ -125,7 +57,7 @@ struct Device {
     /// @param factory Factory to create the device
     /// @param warp True if we want to use warp device. False otherwise
     /// @return The device wrapper
-    static Device create(ComPtr<IDXGIFactory4> factory, bool warp = false) {
+    static Device create(IDXGIFactory4* factory, bool warp = false) {
         Device rv;
         
         if (warp) {
@@ -145,7 +77,7 @@ struct Device {
             );
         } else {
             ComPtr<IDXGIAdapter1> hardware_adapter;
-            get_hardware_adapter(factory.Get(), &hardware_adapter);
+            get_hardware_adapter(factory, &hardware_adapter);
 
             DX_ASSERT(
                 D3D12CreateDevice(
@@ -156,6 +88,8 @@ struct Device {
                 , "Device::create -> failed to create hardware device"
             );
         }
+
+        Logger::get()->debug("DX12 Device created successfully");
 
         return rv;
     }
@@ -286,6 +220,7 @@ struct CommandQueue {
             )
             , "CommandQueue::create -> Failed to create command queue"
         );
+        Logger::get()->debug("DX12CommandQueue created successfully.");
 
         return rv;
     }
@@ -302,7 +237,7 @@ struct SwapChain {
     /// @param hwnd The hwindow reference to give the swapchain
     /// @return The swapchain struct
     static SwapChain create(
-        ComPtr<IDXGIFactory4> factory
+        IDXGIFactory4* factory
         , const CommandQueue& command_queue
         , u32 width
         , u32 height
@@ -337,6 +272,7 @@ struct SwapChain {
             , "SwapChain::create -> Unable to cast to SwapChain4"
         );
 
+        Logger::get()->debug("DX12SwapChain created successfully.");
         return rv;
     }
 
