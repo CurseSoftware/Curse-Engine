@@ -249,6 +249,7 @@ void DX12_Renderer::_load_pipeline() {
         _state.current_width, 
         _state.current_height
     );
+    DX12CommandList command_list = DX12CommandList(&device);
 }
 
 void DX12_Renderer::_load_assets() {

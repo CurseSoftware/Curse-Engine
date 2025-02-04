@@ -40,6 +40,18 @@ private:
     UINT _current_frame_index;
 };
 
+class DX12CommandList {
+public:
+    DX12CommandList(DX12Device* device);
+    void reset();
+
+    ID3D12GraphicsCommandList* get() const { return _command_list.Get(); }
+
+private:
+    ComPtr<ID3D12CommandAllocator> _allocator;
+    ComPtr<ID3D12GraphicsCommandList> _command_list;
+};
+
 } // dx12 namespace
 } // renderer namespace
 } // gravity namespace
