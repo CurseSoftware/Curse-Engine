@@ -16,15 +16,14 @@ release_flags = ['-O2']
 
 build_dir = 'build'
 
-
 debug_env = Environment(CCFLAGS=debug_flags)
 release_env = Environment(CCFLAGS=release_flags)
 
 
-if mode == 'debug':
-    env = debug_env
-else:
+if mode == 'release':
     env = release_env
+else:
+    env = debug_env
 
 def get_win32_sdk_path():
     if env['PLATFORM'] != 'win32':
@@ -171,6 +170,7 @@ if env['PLATFORM'] == 'win32':
     env.Append(CCFLAGS=['/EHsc', '/nologo', '/W3'])
     env.Append(CXXFLAGS=['/std:c++20'])  # For C++20
     env.Append(LIBS=['user32'])
+    env['CXXFLAGS'].extend(['/DEBUG', '/DQ_DEBUG'])
 
     # windows_sdk_path = find_windows_sdk()
     if windows_sdk_path:

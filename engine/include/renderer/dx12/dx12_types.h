@@ -1,12 +1,16 @@
 #pragma once
 #include "renderer/renderer.h"
-#include "renderer/dx12/renderer.h"
+#include "renderer/dx12/fx.h"
+#include "renderer/dx12/dx.h"
+// #include "renderer/dx12/renderer.h"
 
 #if defined(Q_PLATFORM_WINDOWS)
 
 namespace gravity {
 namespace renderer {
 namespace dx12 {
+
+class DX12CommandList;
 
 class DX12Device {
 public:
@@ -15,6 +19,8 @@ public:
     ID3D12Device* device() const { return _device.Get(); }
     ID3D12CommandQueue* command_queue() const { return _command_queue.Get(); }
     IDXGIFactory4* factory() const { return _factory.Get(); }
+
+    void submit_direct(DX12CommandList *list);
 
 private:
     ComPtr<ID3D12Device> _device;

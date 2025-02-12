@@ -33,7 +33,7 @@ Window::Window(const WindowPacket& packet)
 	, m_title(packet.name)
 	, m_can_resize(false)
 	, m_is_initialized(true)
-	, m_renderer(new renderer::dx12::DX12_Renderer())
+	, m_renderer(new renderer::dx12::DX12Renderer())
 {
 	m_renderer->startup(
 		renderer::config {

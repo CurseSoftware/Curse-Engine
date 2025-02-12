@@ -14,7 +14,7 @@
                 // "${workspaceFolder}/testbed/src"
             ],
             "defines": [
-                "_DEBUG",
+                "Q_DEBUG",
                 "UNICODE",
                 "_UNICODE",
                 "QEXPORT"
