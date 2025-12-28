@@ -1,5 +1,8 @@
 # Curse Engine
 
+## NOTE:
+Development on Curse has been halted and shifted to the [blade](https://github.com/CurseSoftware/blade) library.
+
 ## Building and Running
 The build system for this is [Scons]("https://scons.org/") which is a Python-based build system.
 In order to build, you can simply run the command `scons` from the root of the project.
